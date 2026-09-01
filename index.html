@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCW | Gestão com Wesley - CRM & Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-link.active { background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
+        .card-hover { transition: all 0.2s ease-in-out; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f5f9; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-container { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10">
+            <!-- LOGO AREA -->
+            <div class="p-6 border-b border-slate-800 logo-container">
+                <div class="flex flex-col items-center">
+                    <img src="logo.png" alt="GCW - Gestão com Wesley" class="w-48 h-auto mb-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="hidden flex-col items-center">
+                        <div class="text-3xl font-bold text-white flex items-center">
+                            <span class="text-blue-400 mr-1">G</span>
+                            <span class="text-white">CW</span>
+                        </div>
+                        <p class="text-xs text-blue-300 mt-1">Gestão com Wesley</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
+                <a href="#" onclick="switchPage('dashboard', this)" class="sidebar-link active flex items-center p-3 rounded-lg transition-all">
+                    <i class="fas fa-chart-pie w-6"></i> Dashboard
+                </a>
+                <a href="#" onclick="switchPage('crm', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
+                    <i class="fas fa-handshake w-6"></i> CRM (Comercial)
+                </a>
+                <a href="#" onclick="switchPage('financeiro', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
+                    <i class="fas fa-wallet w-6"></i> Financeiro
+                </a>
+                <a href="#" onclick="switchPage('config', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
+                    <i class="fas fa-sliders-h w-6"></i> Configurações
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
+                <p>Versão Demo 2.0</p>
+                <p class="mt-1">Dados salvos localmente</p>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8 bg-slate-50">
+            
+            <!-- HEADER -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800" id="page-title">Dashboard Executivo</h2>
+                    <p class="text-slate-500 text-sm">Visão consolidada e em tempo real do seu negócio</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-slate-400 hover:text-slate-600 relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-1 right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">2</span>
+                    </button>
+                    <div class="flex items-center space-x-3 bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-200">
+                        <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">W</div>
+                        <span class="font-medium text-sm text-slate-700">Wesley</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- PAGES CONTAINER -->
+            <div id="pages-container">
+                <!-- Pages will be injected here by JS -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL CONTAINER -->
+    <div id="modal-overlay" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+            <!-- Modal content injected by JS -->
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. STATE MANAGEMENT & LOCAL STORAGE
+        // ==========================================
+        const DEFAULT_DATA = {
+            categories: {
+                receitas: [
+                    { id: 'r1', nome: 'Receita- Assessoria', tipo: 'Recorrente' },
+                    { id: 'r2', nome: 'Receita- Vaga', tipo: 'Pontual' },
+                    { id: 'r3', nome: 'Receita- Check Up', tipo: 'Pontual' }
+                ],
+                despesas: [
+                    { id: 'd1', nome: 'Custo de Entrega- Consultores', tipo: 'Variável' },
+                    { id: 'd2', nome: 'Custo de Entrega- Mobilidade', tipo: 'Variável' },
+                    { id: 'd3', nome: 'Pró-Labore', tipo: 'Fixo' },
+                    { id: 'd4', nome: 'Marketing', tipo: 'Fixo' },
+                    { id: 'd5', nome: 'Imposto', tipo: 'Variável' },
+                    { id: 'd6', nome: 'Custo de Entrega- Alimentação', tipo: 'Variável' }
+                ]
+            },
+            contracts: [
+                { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva' },
+                { id: 'c2', client: 'Tech Solutions', value: 15000, status: 'ATIVO', responsible: 'Maria Souza' },
+                { id: 'c3', client: 'Global Services', value: 20738.80, status: 'ATIVO', responsible: 'João Silva' },
+                { id: 'c4', client: 'Mega Corp', value: 20000, status: 'ATIVO', responsible: 'Pedro Lima' },
+                { id: 'c5', client: 'StartUp X', value: 12000, status: 'NAO_INICIADO', responsible: 'Maria Souza' },
+                { id: 'c6', client: 'Beta Inc', value: 8000, status: 'NAO_INICIADO', responsible: 'Pedro Lima' },
+                { id: 'c7', client: 'Empresa Y', value: 5000, status: 'REUNIAO', responsible: 'João Silva' },
+                { id: 'c8', client: 'Corp Z', value: 15000, status: 'ENVIADA', responsible: 'Maria Souza' },
+                { id: 'c9', client: 'Delta Ltd', value: 9000, status: 'PERDIDA', responsible: 'Pedro Lima' }
+            ],
+            transactions: [
+                { id: 't1', desc: 'Mensalidade Assessoria - Alpha', catId: 'r1', type: 'RECEITA', value: 5000, date: '2023-11-10', status: 'PAGO' },
+                { id: 't2', desc: 'Honorários Consultoria - Tech', catId: 'd1', type: 'DESPESA', value: 1200, date: '2023-11-05', status: 'VENCIDO' },
+                { id: 't3', desc: 'Vaga Preenchida - Mega Corp', catId: 'r2', type: 'RECEITA', value: 8500, date: '2023-11-20', status: 'PENDENTE' },
+                { id: 't4', desc: 'Alimentação Equipe Campo', catId: 'd6', type: 'DESPESA', value: 450, date: '2023-11-15', status: 'PAGO' }
+            ]
+        };
+
+        let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
+
+        function saveData() {
+            localStorage.setItem('gcwData', JSON.stringify(appData));
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // ==========================================
+        // 2. NAVIGATION & UI LOGIC
+        // ==========================================
+        function switchPage(pageId, element) {
+            document.querySelectorAll('.sidebar-link').forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('text-slate-300');
+            });
+            if(element) {
+                element.classList.add('active');
+                element.classList.remove('text-slate-300');
+            }
+
+            const titles = {
+                'dashboard': 'Dashboard Executivo',
+                'crm': 'Gestão Comercial (CRM)',
+                'financeiro': 'Controle Financeiro',
+                'config': 'Configurações do Sistema'
+            };
+            document.getElementById('page-title').innerText = titles[pageId];
+
+            renderPage(pageId);
+        }
+
+        function renderPage(pageId) {
+            const container = document.getElementById('pages-container');
+            container.innerHTML = '';
+            
+            switch(pageId) {
+                case 'dashboard': renderDashboard(container); break;
+                case 'crm': renderCRM(container); break;
+                case 'financeiro': renderFinanceiro(container); break;
+                case 'config': renderConfig(container); break;
+            }
+        }
+
+        // ==========================================
+        // 3. DASHBOARD RENDERING
+        // ==========================================
+        function renderDashboard(container) {
+            const contracts = appData.contracts;
+            const transactions = appData.transactions;
+
+            const ativos = contracts.filter(c => c.status === 'ATIVO');
+            const naoIniciados = contracts.filter(c => c.status === 'NAO_INICIADO');
+            const valorContratado = ativos.reduce((sum, c) => sum + c.value, 0) + naoIniciados.reduce((sum, c) => sum + c.value, 0);
+            
+            const receitas = transactions.filter(t => t.type === 'RECEITA');
+            const despesas = transactions.filter(t => t.type === 'DESPESA');
+            const totalReceitas = receitas.reduce((sum, t) => sum + t.value, 0);
+            const totalDespesas = despesas.reduce((sum, t) => sum + t.value, 0);
+            const lucroLiquido = totalReceitas - totalDespesas;
+
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
+                    ${renderKPICard('Valor Contratado', formatCurrency(valorContratado), 'fa-file-contract', 'bg-blue-500', 'Contratos Ativos e Não Iniciados')}
+                    ${renderKPICard('Receita Prevista', formatCurrency(totalReceitas), 'fa-arrow-trend-up', 'bg-emerald-500', 'Total de Receitas Lançadas')}
+                    ${renderKPICard('Despesas', formatCurrency(totalDespesas), 'fa-arrow-trend-down', 'bg-red-500', 'Total de Despesas Lançadas')}
+                    ${renderKPICard('Lucro Líquido', formatCurrency(lucroLiquido), 'fa-sack-dollar', lucroLiquido >= 0 ? 'bg-purple-500' : 'bg-orange-500', 'Receitas - Despesas')}
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Fluxo de Caixa (Receitas vs Despesas)</h3>
+                        <canvas id="cashFlowChart" height="100"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Status dos Contratos</h3>
+                        <canvas id="contractStatusChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 fade-in">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Próximos Vencimentos</h3>
+                        <div class="space-y-3">
+                            ${transactions.filter(t => t.status === 'PENDENTE').slice(0, 3).map(t => `
+                                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-slate-700 text-sm">${t.desc}</p>
+                                        <p class="text-xs text-slate-500">${new Date(t.date).toLocaleDateString('pt-BR')}</p>
+                                    </div>
+                                    <span class="font-bold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(t.value)}</span>
+                                </div>
+                            `).join('') || '<p class="text-slate-400 text-sm">Nenhum vencimento pendente.</p>'}
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Resumo da Carteira</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                                <span class="text-slate-600">Contratos Ativos</span>
+                                <span class="font-bold text-slate-800">${ativos.length}</span>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                                <span class="text-slate-600">Em Negociação (Reunião/Enviada)</span>
+                                <span class="font-bold text-slate-800">${contracts.filter(c => c.status === 'REUNIAO' || c.status === 'ENVIADA').length}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600">Ticket Médio Ativo</span>
+                                <span class="font-bold text-primary-600">${ativos.length > 0 ? formatCurrency(valorContratado / ativos.length) : 'R$ 0,00'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                renderCharts();
+            }, 100);
+        }
+
+        function renderKPICard(title, value, icon, bgColor, subtitle) {
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 card-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">${title}</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1">${value}</p>
+                            <p class="text-xs text-slate-400 mt-2">${subtitle}</p>
+                        </div>
+                        <div class="p-3 ${bgColor} rounded-lg text-white shadow-sm">
+                            <i class="fas ${icon} text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCharts() {
+            const ctx1 = document.getElementById('cashFlowChart');
+            if(ctx1) {
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Receitas', 'Despesas', 'Lucro'],
+                        datasets: [{
+                            label: 'Valores (R$)',
+                            data: [
+                                appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0),
+                                appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0),
+                                appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)
+                            ],
+                            backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
+                            borderRadius: 8,
+                            barThickness: 40
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+                    }
+                });
+            }
+
+            const ctx2 = document.getElementById('contractStatusChart');
+            if(ctx2) {
+                const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA'];
+                const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'];
+                const data = statuses.map(s => appData.contracts.filter(c => c.status === s).length);
+
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas'],
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderWidth: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } }
+                    }
+                });
+            }
+        }
+
+        // ==========================================
+        // 4. CRM (KANBAN) RENDERING
+        // ==========================================
+        function renderCRM(container) {
+            const columns = [
+                { id: 'AGUARDANDO', title: 'Aguardando Retorno', color: 'slate' },
+                { id: 'REUNIAO', title: 'Reuniões Agendadas', color: 'blue' },
+                { id: 'ENVIADA', title: 'Propostas Enviadas', color: 'yellow' },
+                { id: 'ATIVO', title: 'Contratos Ativos', color: 'emerald' },
+                { id: 'NAO_INICIADO', title: 'Não Iniciados', color: 'orange' },
+                { id: 'PERDIDA', title: 'Perdidas', color: 'red' }
+            ];
+
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-6 fade-in">
+                    <div class="flex space-x-2">
+                        <button onclick="openContractModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Novo Contrato
+                        </button>
+                    </div>
+                </div>
+                <div class="flex space-x-4 overflow-x-auto pb-4 scrollbar-thin fade-in">
+                    ${columns.map(col => {
+                        const colContracts = appData.contracts.filter(c => c.status === col.id);
+                        const totalValue = colContracts.reduce((sum, c) => sum + c.value, 0);
+                        return `
+                            <div class="flex-shrink-0 w-72 bg-slate-100 p-3 rounded-xl">
+                                <div class="flex justify-between items-center mb-3 px-1">
+                                    <h4 class="font-bold text-slate-700 text-sm">${col.title}</h4>
+                                    <span class="bg-${col.color}-100 text-${col.color}-700 text-xs font-bold px-2 py-1 rounded-full">${colContracts.length}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-3 px-1">Total: ${formatCurrency(totalValue)}</p>
+                                <div class="space-y-3 min-h-[200px]">
+                                    ${colContracts.map(c => `
+                                        <div onclick="openContractModal('${c.id}')" class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 cursor-pointer card-hover">
+                                            <p class="font-semibold text-slate-800 text-sm">${c.client}</p>
+                                            <p class="text-lg font-bold text-primary-600 mt-1">${formatCurrency(c.value)}</p>
+                                            <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100">
+                                                <span class="text-xs text-slate-500"><i class="fas fa-user mr-1"></i>${c.responsible}</span>
+                                                <button onclick="event.stopPropagation(); deleteContract('${c.id}')" class="text-slate-300 hover:text-red-500 transition"><i class="fas fa-trash-alt text-xs"></i></button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 5. FINANCEIRO RENDERING
+        // ==========================================
+        function renderFinanceiro(container) {
+            const transactions = appData.transactions;
+            
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-6 fade-in">
+                    <div class="flex space-x-4">
+                        <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                            <span class="text-xs text-slate-500 block">Saldo do Período</span>
+                            <span class="font-bold text-lg ${transactions.filter(t=>t.type==='RECEITA').reduce((s,t)=>s+t.value,0) >= transactions.filter(t=>t.type==='DESPESA').reduce((s,t)=>s+t.value,0) ? 'text-emerald-600' : 'text-red-600'}">
+                                ${formatCurrency(transactions.filter(t=>t.type==='RECEITA').reduce((s,t)=>s+t.value,0) - transactions.filter(t=>t.type==='DESPESA').reduce((s,t)=>s+t.value,0))}
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="openTransactionModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition shadow-sm flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Nova Transação
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Descrição</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoria</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vencimento</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Valor</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-100">
+                            ${transactions.map(t => {
+                                const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
+                                const statusColors = { PAGO: 'bg-emerald-100 text-emerald-700', VENCIDO: 'bg-red-100 text-red-700', PENDENTE: 'bg-yellow-100 text-yellow-700' };
+                                return `
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center ${t.type === 'RECEITA' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'} mr-3">
+                                                    <i class="fas ${t.type === 'RECEITA' ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
+                                                </div>
+                                                <div class="text-sm font-medium text-slate-800">${t.desc}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${cat ? cat.nome : 'N/A'}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">
+                                            ${t.type === 'DESPESA' ? '- ' : ''}${formatCurrency(t.value)}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[t.status]}">${t.status}</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button onclick="openTransactionModal('${t.id}')" class="text-primary-600 hover:text-primary-900 mr-3"><i class="fas fa-edit"></i></button>
+                                            <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 6. CONFIGURAÇÕES RENDERING
+        // ==========================================
+        function renderConfig(container) {
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 fade-in">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-slate-800">Categorias de Receita</h3>
+                            <button class="text-primary-600 hover:text-primary-800 text-sm font-medium"><i class="fas fa-plus mr-1"></i>Adicionar</button>
+                        </div>
+                        <div class="space-y-2">
+                            ${appData.categories.receitas.map(c => `
+                                <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                                    <div>
+                                        <p class="font-medium text-slate-800 text-sm">${c.nome}</p>
+                                        <p class="text-xs text-slate-500">${c.tipo}</p>
+                                    </div>
+                                    <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded">Receita</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-slate-800">Categorias de Despesa</h3>
+                            <button class="text-primary-600 hover:text-primary-800 text-sm font-medium"><i class="fas fa-plus mr-1"></i>Adicionar</button>
+                        </div>
+                        <div class="space-y-2">
+                            ${appData.categories.despesas.map(c => `
+                                <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                                    <div>
+                                        <p class="font-medium text-slate-800 text-sm">${c.nome}</p>
+                                        <p class="text-xs text-slate-500">${c.tipo || 'Geral'}</p>
+                                    </div>
+                                    <span class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded">Despesa</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 7. MODALS & CRUD ACTIONS
+        // ==========================================
+        function openModal() { document.getElementById('modal-overlay').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+        function openContractModal(id = null) {
+            const contract = id ? appData.contracts.find(c => c.id === id) : null;
+            const statuses = ['AGUARDANDO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA'];
+            
+            document.getElementById('modal-content').innerHTML = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-800">${contract ? 'Editar' : 'Novo'} Contrato</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                    </div>
+                    <form id="contractForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente</label>
+                            <input type="text" id="c_client" value="${contract ? contract.client : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$)</label>
+                                <input type="number" step="0.01" id="c_value" value="${contract ? contract.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                <select id="c_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                                    ${statuses.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Responsável</label>
+                            <input type="text" id="c_responsible" value="${contract ? contract.responsible : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                        </div>
+                        <button type="submit" class="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition font-medium mt-6">Salvar Contrato</button>
+                    </form>
+                </div>
+            `;
+            openModal();
+
+            document.getElementById('contractForm').onsubmit = (e) => {
+                e.preventDefault();
+                const data = {
+                    client: document.getElementById('c_client').value,
+                    value: parseFloat(document.getElementById('c_value').value),
+                    status: document.getElementById('c_status').value,
+                    responsible: document.getElementById('c_responsible').value
+                };
+
+                if (contract) {
+                    Object.assign(contract, data);
+                } else {
+                    appData.contracts.push({ id: 'c' + Date.now(), ...data });
+                }
+                saveData();
+                closeModal();
+                renderPage('crm');
+            };
+        }
+
+        function openTransactionModal(id = null) {
+            const trans = id ? appData.transactions.find(t => t.id === id) : null;
+            const allCats = [
+                ...appData.categories.receitas.map(c => ({...c, type: 'RECEITA'})),
+                ...appData.categories.despesas.map(c => ({...c, type: 'DESPESA'}))
+            ];
+            
+            document.getElementById('modal-content').innerHTML = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-800">${trans ? 'Editar' : 'Nova'} Transação</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                    </div>
+                    <form id="transForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
+                            <input type="text" id="t_desc" value="${trans ? trans.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$)</label>
+                                <input type="number" step="0.01" id="t_value" value="${trans ? trans.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Vencimento</label>
+                                <input type="date" id="t_date" value="${trans ? trans.date : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
+                                <select id="t_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                                    ${allCats.map(c => `<option value="${c.id}" ${trans && trans.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                <select id="t_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                                    <option value="PENDENTE" ${trans && trans.status === 'PENDENTE' ? 'selected' : ''}>Pendente</option>
+                                    <option value="PAGO" ${trans && trans.status === 'PAGO' ? 'selected' : ''}>Pago</option>
+                                    <option value="VENCIDO" ${trans && trans.status === 'VENCIDO' ? 'selected' : ''}>Vencido</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition font-medium mt-6">Salvar Transação</button>
+                    </form>
+                </div>
+            `;
+            openModal();
+
+            document.getElementById('transForm').onsubmit = (e) => {
+                e.preventDefault();
+                const selectedCat = allCats.find(c => c.id === document.getElementById('t_cat').value);
+                const data = {
+                    desc: document.getElementById('t_desc').value,
+                    value: parseFloat(document.getElementById('t_value').value),
+                    date: document.getElementById('t_date').value,
+                    catId: selectedCat.id,
+                    type: selectedCat.type,
+                    status: document.getElementById('t_status').value
+                };
+
+                if (trans) {
+                    Object.assign(trans, data);
+                } else {
+                    appData.transactions.push({ id: 't' + Date.now(), ...data });
+                }
+                saveData();
+                closeModal();
+                renderPage('financeiro');
+            };
+        }
+
+        function deleteContract(id) {
+            if(confirm('Tem certeza que deseja excluir este contrato?')) {
+                appData.contracts = appData.contracts.filter(c => c.id !== id);
+                saveData();
+                renderPage('crm');
+            }
+        }
+
+        function deleteTransaction(id) {
+            if(confirm('Tem certeza que deseja excluir esta transação?')) {
+                appData.transactions = appData.transactions.filter(t => t.id !== id);
+                saveData();
+                renderPage('financeiro');
+            }
+        }
+
+        // ==========================================
+        // 8. INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPage('dashboard');
+        });
+    </script>
+</body>
+</html>
