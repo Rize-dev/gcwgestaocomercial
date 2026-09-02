@@ -29,9 +29,16 @@
         .tag-gray { background: #f1f5f9; color: #475569; }
         .tag-orange { background: #ffedd5; color: #9a3412; }
         .tag-cyan { background: #cffafe; color: #155e75; }
-        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 600; }
         .bank-card { transition: all 0.2s ease; }
         .bank-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.15); }
+        .notification-dropdown { animation: slideDown 0.2s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .notification-item { transition: all 0.15s ease; }
+        .notification-item:hover { background-color: #f8fafc; }
+        .notification-item.unread { border-left: 3px solid #2563eb; }
+        .notification-item.read { opacity: 0.7; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
     <script>
         tailwind.config = {
@@ -81,7 +88,7 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
-                <p>GCW v4.0 - Gestão com Wesley</p>
+                <p>GCW v5.0 - Gestão com Wesley</p>
                 <p class="mt-1">Dados salvos localmente</p>
             </div>
         </aside>
@@ -94,10 +101,28 @@
                     <p class="text-slate-500 text-sm">Visão consolidada e em tempo real do seu negócio</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button class="p-2 text-slate-400 hover:text-slate-600 relative">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span class="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">2</span>
-                    </button>
+                    <!-- NOTIFICATION BELL -->
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="p-2 text-slate-400 hover:text-slate-600 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notification-badge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center pulse-dot">0</span>
+                        </button>
+                        <!-- NOTIFICATION DROPDOWN -->
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-slate-200 notification-dropdown z-50 max-h-[500px] overflow-hidden">
+                            <div class="p-4 border-b border-slate-200 bg-slate-50">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-slate-800">Notificações</h3>
+                                    <button onclick="markAllAsRead()" class="text-xs text-primary-600 hover:text-primary-800 font-medium">Marcar todas como lidas</button>
+                                </div>
+                            </div>
+                            <div id="notification-list" class="overflow-y-auto max-h-[400px]">
+                                <!-- Notifications injected here -->
+                            </div>
+                            <div class="p-3 border-t border-slate-200 bg-slate-50 text-center">
+                                <button onclick="clearAllNotifications()" class="text-xs text-slate-500 hover:text-slate-700">Limpar todas</button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-200">
                         <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">W</div>
                         <span class="font-medium text-sm text-slate-700 hidden sm:inline">Wesley</span>
@@ -169,7 +194,8 @@
         ],
         parcelamentos: [
             { id: 'p1', desc: 'Curso Especialização BNI', catId: 'd4', type: 'DESPESA', valueTotal: 6000, parcelas: 12, formaPagamento: 'CRÉDITO', tipoPessoa: 'PF', dataInicio: '2025-01-10', status: 'ATIVO', contaId: 'b4' }
-        ]
+        ],
+        notifications: []
     };
 
     let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
@@ -181,17 +207,275 @@
     function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR'); }
     function getMonthName(ym) { const [y, m] = ym.split('-'); const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return `${months[parseInt(m)-1]} ${y}`; }
 
-    // Calcular saldo de uma conta bancária
     function calcularSaldoConta(contaId) {
         const conta = appData.bankAccounts.find(b => b.id === contaId);
         if (!conta) return 0;
-        
         const transacoesConta = appData.transactions.filter(t => t.contaId === contaId && t.status === 'PAGO');
         const receitas = transacoesConta.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0);
         const despesas = transacoesConta.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0);
-        
         return conta.saldoInicial + receitas - despesas;
     }
+
+    // ==========================================
+    // NOTIFICATION SYSTEM
+    // ==========================================
+    function generateNotifications() {
+        const notifications = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const threeDaysFromNow = new Date(today);
+        threeDaysFromNow.setDate(today.getDate() + 3);
+
+        // 1. Contas Vencidas (URGENTE)
+        const vencidas = appData.transactions.filter(t => t.status === 'VENCIDO');
+        vencidas.forEach(t => {
+            const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
+            notifications.push({
+                id: 'n_venc_' + t.id,
+                type: 'URGENTE',
+                icon: 'fa-exclamation-circle',
+                color: 'red',
+                title: 'Conta Vencida!',
+                message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`,
+                category: cat ? cat.nome : 'N/A',
+                date: new Date().toISOString(),
+                read: false,
+                action: { type: 'financeiro', id: t.id }
+            });
+        });
+
+        // 2. Contas Próximas do Vencimento (próximos 3 dias)
+        const proximas = appData.transactions.filter(t => {
+            if (t.status !== 'PENDENTE') return false;
+            const dueDate = new Date(t.date + 'T00:00:00');
+            return dueDate >= today && dueDate <= threeDaysFromNow;
+        });
+        proximas.forEach(t => {
+            const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
+            const dueDate = new Date(t.date + 'T00:00:00');
+            const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+            notifications.push({
+                id: 'n_prox_' + t.id,
+                type: 'AVISO',
+                icon: 'fa-clock',
+                color: 'yellow',
+                title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`,
+                message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`,
+                category: cat ? cat.nome : 'N/A',
+                date: new Date().toISOString(),
+                read: false,
+                action: { type: 'financeiro', id: t.id }
+            });
+        });
+
+        // 3. Receitas Recebidas (SUCESSO)
+        const recebidas = appData.transactions.filter(t => t.type === 'RECEITA' && t.status === 'PAGO');
+        recebidas.slice(0, 3).forEach(t => {
+            notifications.push({
+                id: 'n_rec_' + t.id,
+                type: 'SUCESSO',
+                icon: 'fa-check-circle',
+                color: 'green',
+                title: 'Receita Confirmada!',
+                message: `${t.desc} - ${formatCurrency(t.value)} recebido em ${formatDate(t.date)}`,
+                category: 'Receita',
+                date: new Date().toISOString(),
+                read: false,
+                action: { type: 'financeiro', id: t.id }
+            });
+        });
+
+        // 4. Propostas Enviadas/Reuniões Agendadas (INFO)
+        const emNegociacao = appData.contracts.filter(c => ['ENVIADA', 'REUNIAO'].includes(c.status));
+        emNegociacao.forEach(c => {
+            const statusText = c.status === 'ENVIADA' ? 'Proposta Enviada' : 'Reunião Agendada';
+            notifications.push({
+                id: 'n_neg_' + c.id,
+                type: 'INFO',
+                icon: 'fa-handshake',
+                color: 'blue',
+                title: statusText,
+                message: `${c.client} - ${formatCurrency(c.value)} com ${c.responsible}`,
+                category: 'CRM',
+                date: new Date().toISOString(),
+                read: false,
+                action: { type: 'crm', id: c.id }
+            });
+        });
+
+        // 5. Parcelamentos Ativos (INFO)
+        const parcelamentosAtivos = appData.parcelamentos.filter(p => p.status === 'ATIVO');
+        parcelamentosAtivos.forEach(p => {
+            const parcelasPagas = appData.transactions.filter(t => t.desc.startsWith(p.desc) && t.status === 'PAGO').length;
+            notifications.push({
+                id: 'n_par_' + p.id,
+                type: 'INFO',
+                icon: 'fa-calendar-alt',
+                color: 'purple',
+                title: 'Parcelamento Ativo',
+                message: `${p.desc} - ${parcelasPagas}/${p.parcelas} parcelas pagas (${formatCurrency(p.valueTotal)})`,
+                category: 'Parcelamentos',
+                date: new Date().toISOString(),
+                read: false,
+                action: { type: 'parcelamentos', id: p.id }
+            });
+        });
+
+        // 6. Contratos Perdidos (AVISO)
+        const perdidos = appData.contracts.filter(c => c.status === 'PERDIDA');
+        perdidos.slice(0, 2).forEach(c => {
+            notifications.push({
+                id: 'n_perd_' + c.id,
+                type: 'AVISO',
+                icon: 'fa-times-circle',
+                color: 'red',
+                title: 'Contrato Perdido',
+                message: `${c.client} - ${formatCurrency(c.value)} | Motivo: ${c.motivoPerda || 'Não informado'}`,
+                category: 'CRM',
+                date: new Date().toISOString(),
+                read: false,
+                action: { type: 'crm', id: c.id }
+            });
+        });
+
+        // 7. Saldo Baixo em Contas (AVISO)
+        appData.bankAccounts.forEach(b => {
+            const saldo = calcularSaldoConta(b.id);
+            if (saldo < 1000 && saldo >= 0) {
+                notifications.push({
+                    id: 'n_saldo_' + b.id,
+                    type: 'AVISO',
+                    icon: 'fa-wallet',
+                    color: 'yellow',
+                    title: 'Saldo Baixo',
+                    message: `${b.nome} está com saldo de ${formatCurrency(saldo)}`,
+                    category: 'Contas Bancárias',
+                    date: new Date().toISOString(),
+                    read: false,
+                    action: { type: 'contas', id: b.id }
+                });
+            } else if (saldo < 0) {
+                notifications.push({
+                    id: 'n_saldo_neg_' + b.id,
+                    type: 'URGENTE',
+                    icon: 'fa-exclamation-triangle',
+                    color: 'red',
+                    title: 'Saldo Negativo!',
+                    message: `${b.nome} está com saldo negativo de ${formatCurrency(saldo)}`,
+                    category: 'Contas Bancárias',
+                    date: new Date().toISOString(),
+                    read: false,
+                    action: { type: 'contas', id: b.id }
+                });
+            }
+        });
+
+        // Sort by urgency: URGENTE > AVISO > SUCESSO > INFO
+        const urgencyOrder = { 'URGENTE': 0, 'AVISO': 1, 'SUCESSO': 2, 'INFO': 3 };
+        notifications.sort((a, b) => urgencyOrder[a.type] - urgencyOrder[b.type]);
+
+        return notifications;
+    }
+
+    function updateNotificationBadge() {
+        const notifications = generateNotifications();
+        const unreadCount = notifications.filter(n => !n.read).length;
+        const badge = document.getElementById('notification-badge');
+        badge.innerText = unreadCount;
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    function toggleNotifications() {
+        const dropdown = document.getElementById('notification-dropdown');
+        dropdown.classList.toggle('hidden');
+        if (!dropdown.classList.contains('hidden')) {
+            renderNotifications();
+        }
+    }
+
+    function renderNotifications() {
+        const notifications = generateNotifications();
+        const list = document.getElementById('notification-list');
+        
+        if (notifications.length === 0) {
+            list.innerHTML = `
+                <div class="p-8 text-center">
+                    <i class="fas fa-bell-slash text-4xl text-slate-300 mb-3"></i>
+                    <p class="text-slate-500">Nenhuma notificação no momento</p>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = notifications.map(n => {
+            const colorClasses = {
+                'red': 'bg-red-100 text-red-600',
+                'yellow': 'bg-yellow-100 text-yellow-600',
+                'green': 'bg-green-100 text-green-600',
+                'blue': 'bg-blue-100 text-blue-600',
+                'purple': 'bg-purple-100 text-purple-600'
+            };
+            const typeLabels = { 'URGENTE': 'Urgente', 'AVISO': 'Aviso', 'SUCESSO': 'Sucesso', 'INFO': 'Info' };
+            
+            return `
+                <div class="notification-item p-4 border-b border-slate-100 ${n.read ? 'read' : 'unread'} cursor-pointer" onclick="handleNotificationClick('${n.action.type}', '${n.action.id}', '${n.id}')">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full ${colorClasses[n.color]} flex items-center justify-center">
+                            <i class="fas ${n.icon}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start">
+                                <p class="text-sm font-semibold text-slate-800">${n.title}</p>
+                                <span class="tag tag-${n.color} text-[10px]">${typeLabels[n.type]}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-1">${n.message}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">${n.category}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function handleNotificationClick(pageType, id, notificationId) {
+        // Mark as read
+        const notifications = generateNotifications();
+        const notif = notifications.find(n => n.id === notificationId);
+        if (notif) {
+            notif.read = true;
+            // Save read status (simplified - in production would use a separate store)
+        }
+        
+        // Navigate to the relevant page
+        switchPage(pageType, document.querySelector(`[onclick="switchPage('${pageType}', this)"]`));
+        
+        // Close dropdown
+        document.getElementById('notification-dropdown').classList.add('hidden');
+        updateNotificationBadge();
+    }
+
+    function markAllAsRead() {
+        // In a real app, this would update the database
+        alert('Todas as notificações marcadas como lidas!');
+        updateNotificationBadge();
+        renderNotifications();
+    }
+
+    function clearAllNotifications() {
+        if (confirm('Deseja limpar todas as notificações?')) {
+            document.getElementById('notification-dropdown').classList.add('hidden');
+            updateNotificationBadge();
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('notification-dropdown');
+        const bell = e.target.closest('button[onclick="toggleNotifications()"]');
+        if (!bell && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
 
     // ==========================================
     // NAVIGATION
@@ -215,6 +499,7 @@
         const c = document.getElementById('pages-container');
         c.innerHTML = '';
         ({ 'dashboard': renderDashboard, 'crm': renderCRM, 'financeiro': renderFinanceiro, 'contas': renderContas, 'parcelamentos': renderParcelamentos, 'config': renderConfig })[pageId](c);
+        updateNotificationBadge();
     }
 
     // ==========================================
@@ -231,8 +516,6 @@
         const totalReceitas = receitas.reduce((s, t) => s + t.value, 0);
         const totalDespesas = despesas.reduce((s, t) => s + t.value, 0);
         const lucro = totalReceitas - totalDespesas;
-
-        // Saldo total de todas as contas
         const saldoTotalContas = appData.bankAccounts.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
 
         c.innerHTML = `
@@ -758,7 +1041,6 @@
     function openModal() { document.getElementById('modal-overlay').classList.remove('hidden'); }
     function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
-    // --- BANK ACCOUNT MODAL ---
     function openBankAccountModal(id = null) {
         const account = id ? appData.bankAccounts.find(b => b.id === id) : null;
         document.getElementById('modal-content').innerHTML = `
@@ -826,7 +1108,6 @@
         };
     }
 
-    // --- CONTRACT MODAL ---
     function openContractModal(id = null) {
         const contract = id ? appData.contracts.find(c => c.id === id) : null;
         document.getElementById('modal-content').innerHTML = `
@@ -905,7 +1186,6 @@
         container.style.display = status === 'PERDIDA' ? 'block' : 'none';
     }
 
-    // --- TRANSACTION MODAL ---
     function openTransactionModal(id = null) {
         const trans = id ? appData.transactions.find(t => t.id === id) : null;
         const allCats = [
@@ -1068,7 +1348,6 @@
         };
     }
 
-    // --- INSTALLMENT MODAL ---
     function openInstallmentModal(id = null) {
         const inst = id ? appData.parcelamentos.find(p => p.id === id) : null;
         const allCats = [
@@ -1185,7 +1464,6 @@
         };
     }
 
-    // --- CATEGORY MODAL ---
     function openCategoryModal(tipo) {
         document.getElementById('modal-content').innerHTML = `
             <div class="p-6">
@@ -1272,7 +1550,6 @@
         }
         if (confirm('Tem certeza que deseja excluir esta conta bancária?')) {
             appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id);
-            // Remove vínculo das transações
             appData.transactions.forEach(t => {
                 if (t.contaId === id) t.contaId = null;
             });
@@ -1290,7 +1567,10 @@
     // ==========================================
     // INIT
     // ==========================================
-    document.addEventListener('DOMContentLoaded', () => { renderPage('dashboard'); });
+    document.addEventListener('DOMContentLoaded', () => { 
+        renderPage('dashboard');
+        updateNotificationBadge();
+    });
     </script>
 </body>
 </html>
