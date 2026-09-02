@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .sidebar-link.active { background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
         .card-hover { transition: all 0.2s ease-in-out; }
@@ -20,6 +20,18 @@
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .logo-container { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); }
+        .tag { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+        .tag-green { background: #dcfce7; color: #166534; }
+        .tag-blue { background: #dbeafe; color: #1e40af; }
+        .tag-yellow { background: #fef9c3; color: #854d0e; }
+        .tag-red { background: #fee2e2; color: #991b1b; }
+        .tag-purple { background: #f3e8ff; color: #6b21a8; }
+        .tag-gray { background: #f1f5f9; color: #475569; }
+        .tag-orange { background: #ffedd5; color: #9a3412; }
+        .tag-cyan { background: #cffafe; color: #155e75; }
+        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 600; }
+        .bank-card { transition: all 0.2s ease; }
+        .bank-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.15); }
     </style>
     <script>
         tailwind.config = {
@@ -37,16 +49,12 @@
 
     <div class="flex h-screen overflow-hidden">
         <!-- SIDEBAR -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10">
-            <!-- LOGO AREA -->
-            <div class="p-6 border-b border-slate-800 logo-container">
+        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10 flex-shrink-0">
+            <div class="p-5 border-b border-slate-800 logo-container">
                 <div class="flex flex-col items-center">
-                    <img src="logo.png" alt="GCW - Gestão com Wesley" class="w-48 h-auto mb-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <img src="https://i.postimg.cc/28YKKZXJ/Whats-App-Image-2026-08-30-at-17-28-02.jpg" alt="GCW" class="w-44 h-auto mb-1" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div class="hidden flex-col items-center">
-                        <div class="text-3xl font-bold text-white flex items-center">
-                            <span class="text-blue-400 mr-1">G</span>
-                            <span class="text-white">CW</span>
-                        </div>
+                        <div class="text-3xl font-bold text-white"><span class="text-blue-400">G</span>CW</div>
                         <p class="text-xs text-blue-300 mt-1">Gestão com Wesley</p>
                     </div>
                 </div>
@@ -62,603 +70,1227 @@
                 <a href="#" onclick="switchPage('financeiro', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
                     <i class="fas fa-wallet w-6"></i> Financeiro
                 </a>
+                <a href="#" onclick="switchPage('contas', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
+                    <i class="fas fa-university w-6"></i> Contas Bancárias
+                </a>
+                <a href="#" onclick="switchPage('parcelamentos', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
+                    <i class="fas fa-calendar-alt w-6"></i> Parcelamentos
+                </a>
                 <a href="#" onclick="switchPage('config', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
                     <i class="fas fa-sliders-h w-6"></i> Configurações
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
-                <p>Versão Demo 2.0</p>
+                <p>GCW v4.0 - Gestão com Wesley</p>
                 <p class="mt-1">Dados salvos localmente</p>
             </div>
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-1 overflow-y-auto p-8 bg-slate-50">
-            
-            <!-- HEADER -->
-            <header class="flex justify-between items-center mb-8">
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-50">
+            <header class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-3xl font-bold text-slate-800" id="page-title">Dashboard Executivo</h2>
+                    <h2 class="text-2xl lg:text-3xl font-bold text-slate-800" id="page-title">Dashboard Executivo</h2>
                     <p class="text-slate-500 text-sm">Visão consolidada e em tempo real do seu negócio</p>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
                     <button class="p-2 text-slate-400 hover:text-slate-600 relative">
                         <i class="fas fa-bell text-xl"></i>
-                        <span class="absolute top-1 right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">2</span>
+                        <span class="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">2</span>
                     </button>
-                    <div class="flex items-center space-x-3 bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-200">
+                    <div class="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-200">
                         <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">W</div>
-                        <span class="font-medium text-sm text-slate-700">Wesley</span>
+                        <span class="font-medium text-sm text-slate-700 hidden sm:inline">Wesley</span>
                     </div>
                 </div>
             </header>
 
-            <!-- PAGES CONTAINER -->
-            <div id="pages-container">
-                <!-- Pages will be injected here by JS -->
-            </div>
-
+            <div id="pages-container"></div>
         </main>
     </div>
 
-    <!-- MODAL CONTAINER -->
+    <!-- MODAL -->
     <div id="modal-overlay" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
-            <!-- Modal content injected by JS -->
-        </div>
+        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in"></div>
     </div>
 
     <script>
-        // ==========================================
-        // 1. STATE MANAGEMENT & LOCAL STORAGE
-        // ==========================================
-        const DEFAULT_DATA = {
-            categories: {
-                receitas: [
-                    { id: 'r1', nome: 'Receita- Assessoria', tipo: 'Recorrente' },
-                    { id: 'r2', nome: 'Receita- Vaga', tipo: 'Pontual' },
-                    { id: 'r3', nome: 'Receita- Check Up', tipo: 'Pontual' }
-                ],
-                despesas: [
-                    { id: 'd1', nome: 'Custo de Entrega- Consultores', tipo: 'Variável' },
-                    { id: 'd2', nome: 'Custo de Entrega- Mobilidade', tipo: 'Variável' },
-                    { id: 'd3', nome: 'Pró-Labore', tipo: 'Fixo' },
-                    { id: 'd4', nome: 'Marketing', tipo: 'Fixo' },
-                    { id: 'd5', nome: 'Imposto', tipo: 'Variável' },
-                    { id: 'd6', nome: 'Custo de Entrega- Alimentação', tipo: 'Variável' }
-                ]
-            },
-            contracts: [
-                { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva' },
-                { id: 'c2', client: 'Tech Solutions', value: 15000, status: 'ATIVO', responsible: 'Maria Souza' },
-                { id: 'c3', client: 'Global Services', value: 20738.80, status: 'ATIVO', responsible: 'João Silva' },
-                { id: 'c4', client: 'Mega Corp', value: 20000, status: 'ATIVO', responsible: 'Pedro Lima' },
-                { id: 'c5', client: 'StartUp X', value: 12000, status: 'NAO_INICIADO', responsible: 'Maria Souza' },
-                { id: 'c6', client: 'Beta Inc', value: 8000, status: 'NAO_INICIADO', responsible: 'Pedro Lima' },
-                { id: 'c7', client: 'Empresa Y', value: 5000, status: 'REUNIAO', responsible: 'João Silva' },
-                { id: 'c8', client: 'Corp Z', value: 15000, status: 'ENVIADA', responsible: 'Maria Souza' },
-                { id: 'c9', client: 'Delta Ltd', value: 9000, status: 'PERDIDA', responsible: 'Pedro Lima' }
+    // ==========================================
+    // DATA & STATE
+    // ==========================================
+    const ORIGENS = ['INDICAÇÃO', 'PARCERIA', 'BNI', 'CLIENTE', 'PROSPECÇÃO'];
+    const MOTIVOS_PERDA = ['ESCOLHEU CONCORRENTE', 'FEZ INTERNAMENTE', 'SEM ORÇAMENTO', 'PREÇO', 'PROJETO ADIADO', 'NÃO RESPONDEU'];
+    const FORMAS_PAGAMENTO = ['CRÉDITO', 'DÉBITO', 'PIX', 'TRANSFERÊNCIA', 'BOLETO', 'DINHEIRO'];
+    const TIPOS_PESSOA = ['PF', 'PJ'];
+    const STATUS_TRANS = ['PAGO', 'VENCIDO', 'PENDENTE'];
+    const STATUS_CONTRATO = ['AGUARDANDO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA', 'ENCERRADO'];
+    const TIPOS_CONTA = ['CORRENTE', 'POUPANÇA', 'INVESTIMENTO', 'CARTÃO DE CRÉDITO', 'CARTEIRA DIGITAL'];
+    const ICONES_BANCOS = ['fa-university', 'fa-credit-card', 'fa-wallet', 'fa-piggy-bank', 'fa-mobile-alt', 'fa-coins'];
+
+    const DEFAULT_DATA = {
+        categories: {
+            receitas: [
+                { id: 'r1', nome: 'Receita- Assessoria', tipo: 'Recorrente' },
+                { id: 'r2', nome: 'Receita- Vaga', tipo: 'Pontual' },
+                { id: 'r3', nome: 'Receita- Check Up', tipo: 'Pontual' }
             ],
-            transactions: [
-                { id: 't1', desc: 'Mensalidade Assessoria - Alpha', catId: 'r1', type: 'RECEITA', value: 5000, date: '2023-11-10', status: 'PAGO' },
-                { id: 't2', desc: 'Honorários Consultoria - Tech', catId: 'd1', type: 'DESPESA', value: 1200, date: '2023-11-05', status: 'VENCIDO' },
-                { id: 't3', desc: 'Vaga Preenchida - Mega Corp', catId: 'r2', type: 'RECEITA', value: 8500, date: '2023-11-20', status: 'PENDENTE' },
-                { id: 't4', desc: 'Alimentação Equipe Campo', catId: 'd6', type: 'DESPESA', value: 450, date: '2023-11-15', status: 'PAGO' }
+            despesas: [
+                { id: 'd1', nome: 'Custo de Entrega- Consultores', tipo: 'Variável' },
+                { id: 'd2', nome: 'Custo de Entrega- Mobilidade', tipo: 'Variável' },
+                { id: 'd3', nome: 'Pró-Labore', tipo: 'Fixo' },
+                { id: 'd4', nome: 'Marketing', tipo: 'Fixo' },
+                { id: 'd5', nome: 'Imposto', tipo: 'Variável' },
+                { id: 'd6', nome: 'Custo de Entrega- Alimentação', tipo: 'Variável' }
             ]
+        },
+        bankAccounts: [
+            { id: 'b1', nome: 'Nubank PJ', tipo: 'CORRENTE', tipoPessoa: 'PJ', saldoInicial: 5000, cor: '#820AD1', icone: 'fa-credit-card' },
+            { id: 'b2', nome: 'Itaú PF', tipo: 'CORRENTE', tipoPessoa: 'PF', saldoInicial: 2500, cor: '#003399', icone: 'fa-university' },
+            { id: 'b3', nome: 'Caixa Poupança', tipo: 'POUPANÇA', tipoPessoa: 'PF', saldoInicial: 10000, cor: '#005CA9', icone: 'fa-piggy-bank' },
+            { id: 'b4', nome: 'Cartão Nubank', tipo: 'CARTÃO DE CRÉDITO', tipoPessoa: 'PF', saldoInicial: 0, cor: '#820AD1', icone: 'fa-credit-card' }
+        ],
+        contracts: [
+            { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva', origem: 'INDICAÇÃO', motivoPerda: '' },
+            { id: 'c2', client: 'Tech Solutions', value: 15000, status: 'ATIVO', responsible: 'Maria Souza', origem: 'BNI', motivoPerda: '' },
+            { id: 'c3', client: 'Global Services', value: 20738.80, status: 'ATIVO', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: '' },
+            { id: 'c4', client: 'Mega Corp', value: 20000, status: 'ATIVO', responsible: 'Pedro Lima', origem: 'PROSPECÇÃO', motivoPerda: '' },
+            { id: 'c5', client: 'StartUp X', value: 12000, status: 'NAO_INICIADO', responsible: 'Maria Souza', origem: 'CLIENTE', motivoPerda: '' },
+            { id: 'c6', client: 'Beta Inc', value: 8000, status: 'NAO_INICIADO', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: '' },
+            { id: 'c7', client: 'Empresa Y', value: 5000, status: 'REUNIAO', responsible: 'João Silva', origem: 'BNI', motivoPerda: '' },
+            { id: 'c8', client: 'Corp Z', value: 15000, status: 'ENVIADA', responsible: 'Maria Souza', origem: 'PROSPECÇÃO', motivoPerda: '' },
+            { id: 'c9', client: 'Delta Ltd', value: 9000, status: 'PERDIDA', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: 'PREÇO' },
+            { id: 'c10', client: 'Omega SA', value: 7000, status: 'PERDIDA', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: 'ESCOLHEU CONCORRENTE' }
+        ],
+        transactions: [
+            { id: 't1', desc: 'Mensalidade Assessoria - Alpha', catId: 'r1', type: 'RECEITA', value: 5000, date: '2025-01-10', status: 'PAGO', formaPagamento: 'PIX', tipoPessoa: 'PJ', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b1' },
+            { id: 't2', desc: 'Honorários Consultoria', catId: 'd1', type: 'DESPESA', value: 1200, date: '2025-01-05', status: 'VENCIDO', formaPagamento: 'TRANSFERÊNCIA', tipoPessoa: 'PF', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b2' },
+            { id: 't3', desc: 'Vaga Preenchida - Mega Corp', catId: 'r2', type: 'RECEITA', value: 8500, date: '2025-02-20', status: 'PENDENTE', formaPagamento: 'BOLETO', tipoPessoa: 'PJ', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b1' },
+            { id: 't4', desc: 'Alimentação Equipe', catId: 'd6', type: 'DESPESA', value: 450, date: '2025-01-15', status: 'PAGO', formaPagamento: 'CRÉDITO', tipoPessoa: 'PF', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b4' }
+        ],
+        parcelamentos: [
+            { id: 'p1', desc: 'Curso Especialização BNI', catId: 'd4', type: 'DESPESA', valueTotal: 6000, parcelas: 12, formaPagamento: 'CRÉDITO', tipoPessoa: 'PF', dataInicio: '2025-01-10', status: 'ATIVO', contaId: 'b4' }
+        ]
+    };
+
+    let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
+    let currentMonthFilter = new Date().toISOString().slice(0, 7);
+    let currentAccountFilter = 'todas';
+
+    function saveData() { localStorage.setItem('gcwData', JSON.stringify(appData)); }
+    function formatCurrency(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v); }
+    function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR'); }
+    function getMonthName(ym) { const [y, m] = ym.split('-'); const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return `${months[parseInt(m)-1]} ${y}`; }
+
+    // Calcular saldo de uma conta bancária
+    function calcularSaldoConta(contaId) {
+        const conta = appData.bankAccounts.find(b => b.id === contaId);
+        if (!conta) return 0;
+        
+        const transacoesConta = appData.transactions.filter(t => t.contaId === contaId && t.status === 'PAGO');
+        const receitas = transacoesConta.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0);
+        const despesas = transacoesConta.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0);
+        
+        return conta.saldoInicial + receitas - despesas;
+    }
+
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
+    function switchPage(pageId, element) {
+        document.querySelectorAll('.sidebar-link').forEach(el => { el.classList.remove('active'); el.classList.add('text-slate-300'); });
+        if (element) { element.classList.add('active'); element.classList.remove('text-slate-300'); }
+        const titles = { 
+            'dashboard': 'Dashboard Executivo', 
+            'crm': 'Gestão Comercial (CRM)', 
+            'financeiro': 'Controle Financeiro', 
+            'contas': 'Contas Bancárias',
+            'parcelamentos': 'Parcelamentos Longos', 
+            'config': 'Configurações do Sistema' 
         };
+        document.getElementById('page-title').innerText = titles[pageId];
+        renderPage(pageId);
+    }
 
-        let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
+    function renderPage(pageId) {
+        const c = document.getElementById('pages-container');
+        c.innerHTML = '';
+        ({ 'dashboard': renderDashboard, 'crm': renderCRM, 'financeiro': renderFinanceiro, 'contas': renderContas, 'parcelamentos': renderParcelamentos, 'config': renderConfig })[pageId](c);
+    }
 
-        function saveData() {
-            localStorage.setItem('gcwData', JSON.stringify(appData));
-        }
+    // ==========================================
+    // DASHBOARD
+    // ==========================================
+    function renderDashboard(c) {
+        const contracts = appData.contracts;
+        const transactions = appData.transactions;
+        const ativos = contracts.filter(x => x.status === 'ATIVO');
+        const naoIniciados = contracts.filter(x => x.status === 'NAO_INICIADO');
+        const valorContratado = ativos.reduce((s, x) => s + x.value, 0) + naoIniciados.reduce((s, x) => s + x.value, 0);
+        const receitas = transactions.filter(t => t.type === 'RECEITA');
+        const despesas = transactions.filter(t => t.type === 'DESPESA');
+        const totalReceitas = receitas.reduce((s, t) => s + t.value, 0);
+        const totalDespesas = despesas.reduce((s, t) => s + t.value, 0);
+        const lucro = totalReceitas - totalDespesas;
 
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-        }
+        // Saldo total de todas as contas
+        const saldoTotalContas = appData.bankAccounts.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
 
-        // ==========================================
-        // 2. NAVIGATION & UI LOGIC
-        // ==========================================
-        function switchPage(pageId, element) {
-            document.querySelectorAll('.sidebar-link').forEach(el => {
-                el.classList.remove('active');
-                el.classList.add('text-slate-300');
+        c.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+                ${kpiCard('Valor Contratado', formatCurrency(valorContratado), 'fa-file-contract', 'bg-blue-500', `${ativos.length} ativos + ${naoIniciados.length} não iniciados`)}
+                ${kpiCard('Receita Total', formatCurrency(totalReceitas), 'fa-arrow-trend-up', 'bg-emerald-500', `${receitas.length} transações`)}
+                ${kpiCard('Despesas Total', formatCurrency(totalDespesas), 'fa-arrow-trend-down', 'bg-red-500', `${despesas.length} transações`)}
+                ${kpiCard('Saldo em Contas', formatCurrency(saldoTotalContas), 'fa-university', saldoTotalContas >= 0 ? 'bg-purple-500' : 'bg-orange-500', `${appData.bankAccounts.length} contas cadastradas`)}
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 fade-in">
+                <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Fluxo de Caixa</h3>
+                    <canvas id="cashFlowChart" height="100"></canvas>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Status dos Contratos</h3>
+                    <canvas id="contractStatusChart" height="200"></canvas>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 fade-in">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Próximos Vencimentos</h3>
+                    <div class="space-y-2">
+                        ${transactions.filter(t => t.status === 'PENDENTE').slice(0, 4).map(t => `
+                            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                <div><p class="font-medium text-slate-700 text-sm">${t.desc}</p><p class="text-xs text-slate-500">${formatDate(t.date)}</p></div>
+                                <span class="font-bold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(t.value)}</span>
+                            </div>
+                        `).join('') || '<p class="text-slate-400 text-sm p-3">Nenhum vencimento pendente.</p>'}
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Resumo da Carteira</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Contratos Ativos</span><span class="font-bold text-slate-800">${ativos.length}</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Em Negociação</span><span class="font-bold text-slate-800">${contracts.filter(x => ['REUNIAO','ENVIADA','AGUARDANDO'].includes(x.status)).length}</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Perdidas</span><span class="font-bold text-slate-800">${contracts.filter(x => x.status === 'PERDIDA').length}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-600">Ticket Médio Ativo</span><span class="font-bold text-primary-600">${ativos.length > 0 ? formatCurrency(valorContratado / ativos.length) : 'R$ 0,00'}</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        setTimeout(renderCharts, 100);
+    }
+
+    function kpiCard(title, value, icon, bgColor, subtitle) {
+        return `<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 card-hover">
+            <div class="flex justify-between items-start">
+                <div><p class="text-sm font-medium text-slate-500">${title}</p><p class="text-2xl font-bold text-slate-800 mt-1">${value}</p><p class="text-xs text-slate-400 mt-2">${subtitle}</p></div>
+                <div class="p-3 ${bgColor} rounded-lg text-white shadow-sm"><i class="fas ${icon} text-lg"></i></div>
+            </div></div>`;
+    }
+
+    function renderCharts() {
+        const ctx1 = document.getElementById('cashFlowChart');
+        if (ctx1) {
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Receitas', 'Despesas', 'Lucro'],
+                    datasets: [{
+                        label: 'Valores (R$)',
+                        data: [
+                            appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0),
+                            appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0),
+                            appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)
+                        ],
+                        backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
+                        borderRadius: 8, barThickness: 40
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
             });
-            if(element) {
-                element.classList.add('active');
-                element.classList.remove('text-slate-300');
-            }
-
-            const titles = {
-                'dashboard': 'Dashboard Executivo',
-                'crm': 'Gestão Comercial (CRM)',
-                'financeiro': 'Controle Financeiro',
-                'config': 'Configurações do Sistema'
-            };
-            document.getElementById('page-title').innerText = titles[pageId];
-
-            renderPage(pageId);
         }
-
-        function renderPage(pageId) {
-            const container = document.getElementById('pages-container');
-            container.innerHTML = '';
-            
-            switch(pageId) {
-                case 'dashboard': renderDashboard(container); break;
-                case 'crm': renderCRM(container); break;
-                case 'financeiro': renderFinanceiro(container); break;
-                case 'config': renderConfig(container); break;
-            }
+        const ctx2 = document.getElementById('contractStatusChart');
+        if (ctx2) {
+            const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA', 'AGUARDANDO', 'ENCERRADO'];
+            const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#64748b', '#94a3b8'];
+            const data = statuses.map(s => appData.contracts.filter(c => c.status === s).length);
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas', 'Aguardando', 'Encerrados'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } } }
+            });
         }
+    }
 
-        // ==========================================
-        // 3. DASHBOARD RENDERING
-        // ==========================================
-        function renderDashboard(container) {
-            const contracts = appData.contracts;
-            const transactions = appData.transactions;
+    // ==========================================
+    // CRM
+    // ==========================================
+    function renderCRM(c) {
+        const columns = [
+            { id: 'AGUARDANDO', title: 'Aguardando Retorno', color: 'gray' },
+            { id: 'REUNIAO', title: 'Reuniões Agendadas', color: 'blue' },
+            { id: 'ENVIADA', title: 'Propostas Enviadas', color: 'yellow' },
+            { id: 'ATIVO', title: 'Contratos Ativos', color: 'green' },
+            { id: 'NAO_INICIADO', title: 'Não Iniciados', color: 'orange' },
+            { id: 'PERDIDA', title: 'Perdidas', color: 'red' },
+            { id: 'ENCERRADO', title: 'Encerrados', color: 'slate' }
+        ];
 
-            const ativos = contracts.filter(c => c.status === 'ATIVO');
-            const naoIniciados = contracts.filter(c => c.status === 'NAO_INICIADO');
-            const valorContratado = ativos.reduce((sum, c) => sum + c.value, 0) + naoIniciados.reduce((sum, c) => sum + c.value, 0);
-            
-            const receitas = transactions.filter(t => t.type === 'RECEITA');
-            const despesas = transactions.filter(t => t.type === 'DESPESA');
-            const totalReceitas = receitas.reduce((sum, t) => sum + t.value, 0);
-            const totalDespesas = despesas.reduce((sum, t) => sum + t.value, 0);
-            const lucroLiquido = totalReceitas - totalDespesas;
-
-            container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
-                    ${renderKPICard('Valor Contratado', formatCurrency(valorContratado), 'fa-file-contract', 'bg-blue-500', 'Contratos Ativos e Não Iniciados')}
-                    ${renderKPICard('Receita Prevista', formatCurrency(totalReceitas), 'fa-arrow-trend-up', 'bg-emerald-500', 'Total de Receitas Lançadas')}
-                    ${renderKPICard('Despesas', formatCurrency(totalDespesas), 'fa-arrow-trend-down', 'bg-red-500', 'Total de Despesas Lançadas')}
-                    ${renderKPICard('Lucro Líquido', formatCurrency(lucroLiquido), 'fa-sack-dollar', lucroLiquido >= 0 ? 'bg-purple-500' : 'bg-orange-500', 'Receitas - Despesas')}
+        c.innerHTML = `
+            <div class="flex justify-between items-center mb-5 fade-in">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-slate-500">Total de Contratos:</span>
+                    <span class="font-bold text-slate-800">${appData.contracts.length}</span>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Fluxo de Caixa (Receitas vs Despesas)</h3>
-                        <canvas id="cashFlowChart" height="100"></canvas>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Status dos Contratos</h3>
-                        <canvas id="contractStatusChart" height="200"></canvas>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 fade-in">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Próximos Vencimentos</h3>
-                        <div class="space-y-3">
-                            ${transactions.filter(t => t.status === 'PENDENTE').slice(0, 3).map(t => `
-                                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                    <div>
-                                        <p class="font-medium text-slate-700 text-sm">${t.desc}</p>
-                                        <p class="text-xs text-slate-500">${new Date(t.date).toLocaleDateString('pt-BR')}</p>
+                <button onclick="openContractModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
+                    <i class="fas fa-plus mr-2"></i> Novo Contrato
+                </button>
+            </div>
+            <div class="flex space-x-3 overflow-x-auto pb-4 scrollbar-thin fade-in">
+                ${columns.map(col => {
+                    const colContracts = appData.contracts.filter(c => c.status === col.id);
+                    const totalValue = colContracts.reduce((s, c) => s + c.value, 0);
+                    return `<div class="flex-shrink-0 w-72 bg-slate-100 p-3 rounded-xl">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <h4 class="font-bold text-slate-700 text-sm">${col.title}</h4>
+                            <span class="bg-${col.color}-100 text-${col.color}-700 text-xs font-bold px-2 py-1 rounded-full">${colContracts.length}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3 px-1">Total: ${formatCurrency(totalValue)}</p>
+                        <div class="space-y-2 min-h-[150px]">
+                            ${colContracts.map(c => `
+                                <div onclick="openContractModal('${c.id}')" class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 cursor-pointer card-hover">
+                                    <p class="font-semibold text-slate-800 text-sm">${c.client}</p>
+                                    <p class="text-base font-bold text-primary-600 mt-1">${formatCurrency(c.value)}</p>
+                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+                                        <span class="text-xs text-slate-500"><i class="fas fa-user mr-1"></i>${c.responsible}</span>
+                                        ${c.origem ? `<span class="tag tag-blue text-[10px]">${c.origem}</span>` : ''}
                                     </div>
-                                    <span class="font-bold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(t.value)}</span>
+                                    ${c.status === 'PERDIDA' && c.motivoPerda ? `<div class="mt-2"><span class="tag tag-red text-[10px]"><i class="fas fa-times-circle mr-1"></i>${c.motivoPerda}</span></div>` : ''}
+                                    <div class="flex justify-end mt-2">
+                                        <button onclick="event.stopPropagation(); deleteContract('${c.id}')" class="text-slate-300 hover:text-red-500 transition text-xs"><i class="fas fa-trash-alt"></i></button>
+                                    </div>
                                 </div>
-                            `).join('') || '<p class="text-slate-400 text-sm">Nenhum vencimento pendente.</p>'}
+                            `).join('')}
                         </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Resumo da Carteira</h3>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                                <span class="text-slate-600">Contratos Ativos</span>
-                                <span class="font-bold text-slate-800">${ativos.length}</span>
-                            </div>
-                            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                                <span class="text-slate-600">Em Negociação (Reunião/Enviada)</span>
-                                <span class="font-bold text-slate-800">${contracts.filter(c => c.status === 'REUNIAO' || c.status === 'ENVIADA').length}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-600">Ticket Médio Ativo</span>
-                                <span class="font-bold text-primary-600">${ativos.length > 0 ? formatCurrency(valorContratado / ativos.length) : 'R$ 0,00'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+    }
 
-            setTimeout(() => {
-                renderCharts();
-            }, 100);
-        }
+    // ==========================================
+    // CONTAS BANCÁRIAS
+    // ==========================================
+    function renderContas(c) {
+        const contas = appData.bankAccounts;
+        const saldoTotal = contas.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
+        const contasPF = contas.filter(b => b.tipoPessoa === 'PF');
+        const contasPJ = contas.filter(b => b.tipoPessoa === 'PJ');
+        const saldoPF = contasPF.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
+        const saldoPJ = contasPJ.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
 
-        function renderKPICard(title, value, icon, bgColor, subtitle) {
-            return `
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 card-hover">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">${title}</p>
-                            <p class="text-2xl font-bold text-slate-800 mt-1">${value}</p>
-                            <p class="text-xs text-slate-400 mt-2">${subtitle}</p>
-                        </div>
-                        <div class="p-3 ${bgColor} rounded-lg text-white shadow-sm">
-                            <i class="fas ${icon} text-lg"></i>
-                        </div>
+        c.innerHTML = `
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-3 fade-in">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo Total Geral</span>
+                        <span class="font-bold text-lg ${saldoTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(saldoTotal)}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo PF (Pessoa Física)</span>
+                        <span class="font-bold text-lg text-purple-600">${formatCurrency(saldoPF)}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo PJ (Pessoa Jurídica)</span>
+                        <span class="font-bold text-lg text-blue-600">${formatCurrency(saldoPJ)}</span>
                     </div>
                 </div>
-            `;
-        }
+                <button onclick="openBankAccountModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
+                    <i class="fas fa-plus mr-2"></i> Nova Conta Bancária
+                </button>
+            </div>
 
-        function renderCharts() {
-            const ctx1 = document.getElementById('cashFlowChart');
-            if(ctx1) {
-                new Chart(ctx1, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Receitas', 'Despesas', 'Lucro'],
-                        datasets: [{
-                            label: 'Valores (R$)',
-                            data: [
-                                appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0),
-                                appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0),
-                                appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)
-                            ],
-                            backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
-                            borderRadius: 8,
-                            barThickness: 40
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
-                    }
-                });
-            }
-
-            const ctx2 = document.getElementById('contractStatusChart');
-            if(ctx2) {
-                const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA'];
-                const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'];
-                const data = statuses.map(s => appData.contracts.filter(c => c.status === s).length);
-
-                new Chart(ctx2, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas'],
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors,
-                            borderWidth: 0,
-                            cutout: '70%'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } }
-                    }
-                });
-            }
-        }
-
-        // ==========================================
-        // 4. CRM (KANBAN) RENDERING
-        // ==========================================
-        function renderCRM(container) {
-            const columns = [
-                { id: 'AGUARDANDO', title: 'Aguardando Retorno', color: 'slate' },
-                { id: 'REUNIAO', title: 'Reuniões Agendadas', color: 'blue' },
-                { id: 'ENVIADA', title: 'Propostas Enviadas', color: 'yellow' },
-                { id: 'ATIVO', title: 'Contratos Ativos', color: 'emerald' },
-                { id: 'NAO_INICIADO', title: 'Não Iniciados', color: 'orange' },
-                { id: 'PERDIDA', title: 'Perdidas', color: 'red' }
-            ];
-
-            container.innerHTML = `
-                <div class="flex justify-between items-center mb-6 fade-in">
-                    <div class="flex space-x-2">
-                        <button onclick="openContractModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center">
-                            <i class="fas fa-plus mr-2"></i> Novo Contrato
-                        </button>
-                    </div>
-                </div>
-                <div class="flex space-x-4 overflow-x-auto pb-4 scrollbar-thin fade-in">
-                    ${columns.map(col => {
-                        const colContracts = appData.contracts.filter(c => c.status === col.id);
-                        const totalValue = colContracts.reduce((sum, c) => sum + c.value, 0);
-                        return `
-                            <div class="flex-shrink-0 w-72 bg-slate-100 p-3 rounded-xl">
-                                <div class="flex justify-between items-center mb-3 px-1">
-                                    <h4 class="font-bold text-slate-700 text-sm">${col.title}</h4>
-                                    <span class="bg-${col.color}-100 text-${col.color}-700 text-xs font-bold px-2 py-1 rounded-full">${colContracts.length}</span>
-                                </div>
-                                <p class="text-xs text-slate-500 mb-3 px-1">Total: ${formatCurrency(totalValue)}</p>
-                                <div class="space-y-3 min-h-[200px]">
-                                    ${colContracts.map(c => `
-                                        <div onclick="openContractModal('${c.id}')" class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 cursor-pointer card-hover">
-                                            <p class="font-semibold text-slate-800 text-sm">${c.client}</p>
-                                            <p class="text-lg font-bold text-primary-600 mt-1">${formatCurrency(c.value)}</p>
-                                            <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100">
-                                                <span class="text-xs text-slate-500"><i class="fas fa-user mr-1"></i>${c.responsible}</span>
-                                                <button onclick="event.stopPropagation(); deleteContract('${c.id}')" class="text-slate-300 hover:text-red-500 transition"><i class="fas fa-trash-alt text-xs"></i></button>
-                                            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
+                ${contas.map(conta => {
+                    const saldo = calcularSaldoConta(conta.id);
+                    const transacoesConta = appData.transactions.filter(t => t.contaId === conta.id);
+                    const receitasConta = transacoesConta.filter(t => t.type === 'RECEITA' && t.status === 'PAGO').reduce((s, t) => s + t.value, 0);
+                    const despesasConta = transacoesConta.filter(t => t.type === 'DESPESA' && t.status === 'PAGO').reduce((s, t) => s + t.value, 0);
+                    return `
+                        <div class="bank-card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-4 text-white" style="background: linear-gradient(135deg, ${conta.cor} 0%, ${conta.cor}dd 100%);">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas ${conta.icone} text-2xl"></i>
+                                        <div>
+                                            <h4 class="font-bold text-lg">${conta.nome}</h4>
+                                            <p class="text-xs opacity-90">${conta.tipo} • ${conta.tipoPessoa}</p>
                                         </div>
-                                    `).join('')}
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button onclick="openBankAccountModal('${conta.id}')" class="p-1.5 bg-white/20 rounded hover:bg-white/30 transition"><i class="fas fa-edit text-xs"></i></button>
+                                        <button onclick="deleteBankAccount('${conta.id}')" class="p-1.5 bg-white/20 rounded hover:bg-white/30 transition"><i class="fas fa-trash-alt text-xs"></i></button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-xs opacity-80 mb-1">Saldo Atual</p>
+                                    <p class="text-2xl font-bold">${formatCurrency(saldo)}</p>
                                 </div>
                             </div>
-                        `;
-                    }).join('')}
+                            <div class="p-4 bg-slate-50">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs text-slate-500">Saldo Inicial</span>
+                                    <span class="text-sm font-medium text-slate-700">${formatCurrency(conta.saldoInicial)}</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs text-slate-500">Receitas (Pagas)</span>
+                                    <span class="text-sm font-medium text-emerald-600">+ ${formatCurrency(receitasConta)}</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-xs text-slate-500">Despesas (Pagas)</span>
+                                    <span class="text-sm font-medium text-red-600">- ${formatCurrency(despesasConta)}</span>
+                                </div>
+                                <div class="pt-2 border-t border-slate-200">
+                                    <p class="text-xs text-slate-400"><i class="fas fa-exchange-alt mr-1"></i>${transacoesConta.length} transações vinculadas</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+
+            ${contas.length === 0 ? `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center fade-in">
+                    <i class="fas fa-university text-6xl text-slate-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Nenhuma conta bancária cadastrada</h3>
+                    <p class="text-slate-500 mb-4">Comece adicionando suas contas bancárias para controlar melhor seu fluxo de caixa.</p>
+                    <button onclick="openBankAccountModal()" class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
+                        <i class="fas fa-plus mr-2"></i>Adicionar Primeira Conta
+                    </button>
                 </div>
-            `;
+            ` : ''}
+
+            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 fade-in">
+                <h4 class="font-semibold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Como funciona o saldo?</h4>
+                <p class="text-sm text-blue-700">O saldo de cada conta é calculado automaticamente: <strong>Saldo Inicial + Receitas Pagas - Despesas Pagas</strong>. Transações com status "Pendente" ou "Vencido" não afetam o saldo até serem marcadas como "Pago".</p>
+            </div>
+        `;
+    }
+
+    // ==========================================
+    // FINANCEIRO
+    // ==========================================
+    function renderFinanceiro(c) {
+        const transactions = appData.transactions;
+        const monthTransactions = transactions.filter(t => t.date.startsWith(currentMonthFilter));
+        const filteredTransactions = currentAccountFilter === 'todas' ? monthTransactions : monthTransactions.filter(t => t.contaId === currentAccountFilter);
+        
+        const receitasMes = filteredTransactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0);
+        const despesasMes = filteredTransactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0);
+        const saldoMes = receitasMes - despesasMes;
+
+        const now = new Date();
+        const monthOptions = [];
+        for (let i = -6; i <= 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+            const ym = d.toISOString().slice(0, 7);
+            monthOptions.push({ value: ym, label: getMonthName(ym) });
         }
 
-        // ==========================================
-        // 5. FINANCEIRO RENDERING
-        // ==========================================
-        function renderFinanceiro(container) {
-            const transactions = appData.transactions;
-            
-            container.innerHTML = `
-                <div class="flex justify-between items-center mb-6 fade-in">
-                    <div class="flex space-x-4">
-                        <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-                            <span class="text-xs text-slate-500 block">Saldo do Período</span>
-                            <span class="font-bold text-lg ${transactions.filter(t=>t.type==='RECEITA').reduce((s,t)=>s+t.value,0) >= transactions.filter(t=>t.type==='DESPESA').reduce((s,t)=>s+t.value,0) ? 'text-emerald-600' : 'text-red-600'}">
-                                ${formatCurrency(transactions.filter(t=>t.type==='RECEITA').reduce((s,t)=>s+t.value,0) - transactions.filter(t=>t.type==='DESPESA').reduce((s,t)=>s+t.value,0))}
-                            </span>
-                        </div>
+        c.innerHTML = `
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-3 fade-in">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo do Mês</span>
+                        <span class="font-bold text-lg ${saldoMes >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(saldoMes)}</span>
                     </div>
-                    <button onclick="openTransactionModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition shadow-sm flex items-center">
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Receitas</span>
+                        <span class="font-bold text-lg text-emerald-600">${formatCurrency(receitasMes)}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Despesas</span>
+                        <span class="font-bold text-lg text-red-600">${formatCurrency(despesasMes)}</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select onchange="currentMonthFilter = this.value; renderPage('financeiro')" class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none">
+                        ${monthOptions.map(m => `<option value="${m.value}" ${m.value === currentMonthFilter ? 'selected' : ''}>${m.label}</option>`).join('')}
+                    </select>
+                    <select onchange="currentAccountFilter = this.value; renderPage('financeiro')" class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none">
+                        <option value="todas" ${currentAccountFilter === 'todas' ? 'selected' : ''}>Todas as Contas</option>
+                        ${appData.bankAccounts.map(b => `<option value="${b.id}" ${currentAccountFilter === b.id ? 'selected' : ''}>${b.nome}</option>`).join('')}
+                    </select>
+                    <button onclick="openTransactionModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition shadow-sm flex items-center text-sm">
                         <i class="fas fa-plus mr-2"></i> Nova Transação
                     </button>
                 </div>
+            </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Descrição</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoria</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vencimento</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Valor</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Ações</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Descrição</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Categoria</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Vencimento</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Valor</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Conta</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Pagamento</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tipo</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Ações</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-100">
-                            ${transactions.map(t => {
+                            ${filteredTransactions.length === 0 ? '<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400">Nenhuma transação neste período.</td></tr>' : ''}
+                            ${filteredTransactions.map(t => {
                                 const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
-                                const statusColors = { PAGO: 'bg-emerald-100 text-emerald-700', VENCIDO: 'bg-red-100 text-red-700', PENDENTE: 'bg-yellow-100 text-yellow-700' };
-                                return `
-                                    <tr class="hover:bg-slate-50 transition">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="w-8 h-8 rounded-full flex items-center justify-center ${t.type === 'RECEITA' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'} mr-3">
-                                                    <i class="fas ${t.type === 'RECEITA' ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
-                                                </div>
-                                                <div class="text-sm font-medium text-slate-800">${t.desc}</div>
+                                const conta = appData.bankAccounts.find(b => b.id === t.contaId);
+                                const statusColors = { PAGO: 'tag-green', VENCIDO: 'tag-red', PENDENTE: 'tag-yellow' };
+                                const formaColors = { 'CRÉDITO': 'tag-purple', 'DÉBITO': 'tag-blue', 'PIX': 'tag-green', 'TRANSFERÊNCIA': 'tag-gray', 'BOLETO': 'tag-orange', 'DINHEIRO': 'tag-gray' };
+                                return `<tr class="hover:bg-slate-50 transition">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center ${t.type === 'RECEITA' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'} mr-2 flex-shrink-0">
+                                                <i class="fas ${t.type === 'RECEITA' ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
                                             </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${cat ? cat.nome : 'N/A'}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">
-                                            ${t.type === 'DESPESA' ? '- ' : ''}${formatCurrency(t.value)}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[t.status]}">${t.status}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button onclick="openTransactionModal('${t.id}')" class="text-primary-600 hover:text-primary-900 mr-3"><i class="fas fa-edit"></i></button>
-                                            <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
-                                        </td>
-                                    </tr>
-                                `;
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">${t.desc}</p>
+                                                ${t.parcelamento > 1 ? `<p class="text-xs text-slate-400">Parcela ${t.parcelaAtual}/${t.parcelamento}</p>` : ''}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${cat ? cat.nome : 'N/A'}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${formatDate(t.date)}</td>
+                                    <td class="px-4 py-3 text-sm font-semibold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">${t.type === 'DESPESA' ? '- ' : ''}${formatCurrency(t.value)}</td>
+                                    <td class="px-4 py-3">
+                                        ${conta ? `
+                                            <div class="flex items-center space-x-1">
+                                                <i class="fas ${conta.icone} text-xs" style="color: ${conta.cor}"></i>
+                                                <span class="text-xs font-medium text-slate-700">${conta.nome}</span>
+                                            </div>
+                                        ` : '<span class="text-xs text-slate-400">Não vinculada</span>'}
+                                    </td>
+                                    <td class="px-4 py-3"><span class="tag ${formaColors[t.formaPagamento] || 'tag-gray'}">${t.formaPagamento || '-'}</span></td>
+                                    <td class="px-4 py-3"><span class="tag ${t.tipoPessoa === 'PJ' ? 'tag-blue' : 'tag-purple'}">${t.tipoPessoa || '-'}</span></td>
+                                    <td class="px-4 py-3"><span class="tag ${statusColors[t.status]}">${t.status}</span></td>
+                                    <td class="px-4 py-3 text-right text-sm">
+                                        <button onclick="openTransactionModal('${t.id}')" class="text-primary-600 hover:text-primary-900 mr-2"><i class="fas fa-edit"></i></button>
+                                        <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>`;
                             }).join('')}
                         </tbody>
                     </table>
                 </div>
-            `;
-        }
+            </div>
+        `;
+    }
 
-        // ==========================================
-        // 6. CONFIGURAÇÕES RENDERING
-        // ==========================================
-        function renderConfig(container) {
-            container.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 fade-in">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-slate-800">Categorias de Receita</h3>
-                            <button class="text-primary-600 hover:text-primary-800 text-sm font-medium"><i class="fas fa-plus mr-1"></i>Adicionar</button>
-                        </div>
-                        <div class="space-y-2">
-                            ${appData.categories.receitas.map(c => `
-                                <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                                    <div>
-                                        <p class="font-medium text-slate-800 text-sm">${c.nome}</p>
-                                        <p class="text-xs text-slate-500">${c.tipo}</p>
-                                    </div>
-                                    <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded">Receita</span>
+    // ==========================================
+    // PARCELAMENTOS
+    // ==========================================
+    function renderParcelamentos(c) {
+        const parcelamentos = appData.parcelamentos;
+        const totalParcelado = parcelamentos.filter(p => p.status === 'ATIVO').reduce((s, p) => s + p.valueTotal, 0);
+
+        c.innerHTML = `
+            <div class="flex justify-between items-center mb-5 fade-in">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Total Parcelado Ativo</span>
+                        <span class="font-bold text-lg text-primary-600">${formatCurrency(totalParcelado)}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Contratos Ativos</span>
+                        <span class="font-bold text-lg text-slate-800">${parcelamentos.filter(p => p.status === 'ATIVO').length}</span>
+                    </div>
+                </div>
+                <button onclick="openInstallmentModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center text-sm">
+                    <i class="fas fa-plus mr-2"></i> Novo Parcelamento
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Descrição</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Categoria</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Valor Total</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Parcelas</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Valor/Parcela</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Pagamento</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Conta</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tipo</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Início</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-100">
+                            ${parcelamentos.length === 0 ? '<tr><td colspan="11" class="px-4 py-8 text-center text-slate-400">Nenhum parcelamento cadastrado.</td></tr>' : ''}
+                            ${parcelamentos.map(p => {
+                                const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === p.catId);
+                                const conta = appData.bankAccounts.find(b => b.id === p.contaId);
+                                const valorParcela = p.valueTotal / p.parcelas;
+                                return `<tr class="hover:bg-slate-50 transition">
+                                    <td class="px-4 py-3 text-sm font-medium text-slate-800">${p.desc}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${cat ? cat.nome : 'N/A'}</td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-red-600">${formatCurrency(p.valueTotal)}</td>
+                                    <td class="px-4 py-3"><span class="tag tag-purple">${p.parcelas}x</span></td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-slate-700">${formatCurrency(valorParcela)}</td>
+                                    <td class="px-4 py-3"><span class="tag tag-blue">${p.formaPagamento}</span></td>
+                                    <td class="px-4 py-3">
+                                        ${conta ? `
+                                            <div class="flex items-center space-x-1">
+                                                <i class="fas ${conta.icone} text-xs" style="color: ${conta.cor}"></i>
+                                                <span class="text-xs font-medium">${conta.nome}</span>
+                                            </div>
+                                        ` : '<span class="text-xs text-slate-400">-</span>'}
+                                    </td>
+                                    <td class="px-4 py-3"><span class="tag ${p.tipoPessoa === 'PJ' ? 'tag-blue' : 'tag-purple'}">${p.tipoPessoa}</span></td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${formatDate(p.dataInicio)}</td>
+                                    <td class="px-4 py-3"><span class="tag ${p.status === 'ATIVO' ? 'tag-green' : 'tag-gray'}">${p.status}</span></td>
+                                    <td class="px-4 py-3 text-right text-sm">
+                                        <button onclick="openInstallmentModal('${p.id}')" class="text-primary-600 hover:text-primary-900 mr-2"><i class="fas fa-edit"></i></button>
+                                        <button onclick="deleteInstallment('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 fade-in">
+                <h4 class="font-semibold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Como funciona o parcelamento?</h4>
+                <p class="text-sm text-blue-700">Ao criar um parcelamento (ex: curso em 12x no crédito), o sistema gera automaticamente as parcelas mensais no módulo Financeiro. Você pode filtrar por mês para ver quais parcelas vencem em cada período. Ideal para controlar despesas de <strong>Pessoa Física</strong> (cartão pessoal) e <strong>Pessoa Jurídica</strong> (cartão empresarial).</p>
+            </div>
+        `;
+    }
+
+    // ==========================================
+    // CONFIGURAÇÕES
+    // ==========================================
+    function renderConfig(c) {
+        c.innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 fade-in">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800"><i class="fas fa-arrow-trend-up text-emerald-500 mr-2"></i>Categorias de Receita</h3>
+                        <button onclick="openCategoryModal('receita')" class="text-primary-600 hover:text-primary-800 text-sm font-medium"><i class="fas fa-plus mr-1"></i>Adicionar</button>
+                    </div>
+                    <div class="space-y-2">
+                        ${appData.categories.receitas.map(cat => `
+                            <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                                <div>
+                                    <p class="font-medium text-slate-800 text-sm">${cat.nome}</p>
+                                    <p class="text-xs text-slate-500">${cat.tipo || 'Geral'}</p>
                                 </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-slate-800">Categorias de Despesa</h3>
-                            <button class="text-primary-600 hover:text-primary-800 text-sm font-medium"><i class="fas fa-plus mr-1"></i>Adicionar</button>
-                        </div>
-                        <div class="space-y-2">
-                            ${appData.categories.despesas.map(c => `
-                                <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
-                                    <div>
-                                        <p class="font-medium text-slate-800 text-sm">${c.nome}</p>
-                                        <p class="text-xs text-slate-500">${c.tipo || 'Geral'}</p>
-                                    </div>
-                                    <span class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded">Despesa</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="tag tag-green">Receita</span>
+                                    <button onclick="deleteCategory('receita', '${cat.id}')" class="text-slate-400 hover:text-red-500 transition"><i class="fas fa-trash-alt text-xs"></i></button>
                                 </div>
-                            `).join('')}
-                        </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
-            `;
-        }
-
-        // ==========================================
-        // 7. MODALS & CRUD ACTIONS
-        // ==========================================
-        function openModal() { document.getElementById('modal-overlay').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-
-        function openContractModal(id = null) {
-            const contract = id ? appData.contracts.find(c => c.id === id) : null;
-            const statuses = ['AGUARDANDO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA'];
-            
-            document.getElementById('modal-content').innerHTML = `
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-slate-800">${contract ? 'Editar' : 'Novo'} Contrato</h3>
-                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800"><i class="fas fa-arrow-trend-down text-red-500 mr-2"></i>Categorias de Despesa</h3>
+                        <button onclick="openCategoryModal('despesa')" class="text-primary-600 hover:text-primary-800 text-sm font-medium"><i class="fas fa-plus mr-1"></i>Adicionar</button>
                     </div>
-                    <form id="contractForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente</label>
-                            <input type="text" id="c_client" value="${contract ? contract.client : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$)</label>
-                                <input type="number" step="0.01" id="c_value" value="${contract ? contract.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
+                    <div class="space-y-2">
+                        ${appData.categories.despesas.map(cat => `
+                            <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                                <div>
+                                    <p class="font-medium text-slate-800 text-sm">${cat.nome}</p>
+                                    <p class="text-xs text-slate-500">${cat.tipo || 'Geral'}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="tag tag-red">Despesa</span>
+                                    <button onclick="deleteCategory('despesa', '${cat.id}')" class="text-slate-400 hover:text-red-500 transition"><i class="fas fa-trash-alt text-xs"></i></button>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                                <select id="c_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
-                                    ${statuses.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Responsável</label>
-                            <input type="text" id="c_responsible" value="${contract ? contract.responsible : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
-                        </div>
-                        <button type="submit" class="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition font-medium mt-6">Salvar Contrato</button>
-                    </form>
+                        `).join('')}
+                    </div>
                 </div>
-            `;
-            openModal();
+            </div>
 
-            document.getElementById('contractForm').onsubmit = (e) => {
-                e.preventDefault();
-                const data = {
-                    client: document.getElementById('c_client').value,
-                    value: parseFloat(document.getElementById('c_value').value),
-                    status: document.getElementById('c_status').value,
-                    responsible: document.getElementById('c_responsible').value
-                };
+            <div class="mt-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200 fade-in">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4"><i class="fas fa-cog text-slate-500 mr-2"></i>Resumo do Sistema</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500 uppercase mb-1">Receitas</p>
+                        <p class="text-2xl font-bold text-emerald-600">${appData.categories.receitas.length}</p>
+                        <p class="text-xs text-slate-400">categorias</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500 uppercase mb-1">Despesas</p>
+                        <p class="text-2xl font-bold text-red-600">${appData.categories.despesas.length}</p>
+                        <p class="text-xs text-slate-400">categorias</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500 uppercase mb-1">Contas Bancárias</p>
+                        <p class="text-2xl font-bold text-primary-600">${appData.bankAccounts.length}</p>
+                        <p class="text-xs text-slate-400">cadastradas</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500 uppercase mb-1">Formas de Pagamento</p>
+                        <p class="text-2xl font-bold text-purple-600">${FORMAS_PAGAMENTO.length}</p>
+                        <p class="text-xs text-slate-400">opções</p>
+                    </div>
+                </div>
+            </div>
 
-                if (contract) {
-                    Object.assign(contract, data);
-                } else {
-                    appData.contracts.push({ id: 'c' + Date.now(), ...data });
-                }
-                saveData();
-                closeModal();
-                renderPage('crm');
+            <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4 fade-in">
+                <h4 class="font-semibold text-yellow-800 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Atenção</h4>
+                <p class="text-sm text-yellow-700">Ao excluir uma categoria, as transações vinculadas a ela permanecerão no sistema, mas aparecerão como "N/A". Recomendamos criar novas categorias em vez de excluir as existentes.</p>
+            </div>
+        `;
+    }
+
+    // ==========================================
+    // MODALS
+    // ==========================================
+    function openModal() { document.getElementById('modal-overlay').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+    // --- BANK ACCOUNT MODAL ---
+    function openBankAccountModal(id = null) {
+        const account = id ? appData.bankAccounts.find(b => b.id === id) : null;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">${account ? 'Editar' : 'Nova'} Conta Bancária</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form id="bankForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome da Conta *</label>
+                        <input type="text" id="b_nome" value="${account ? account.nome : ''}" placeholder="Ex: Nubank PJ, Itaú PF" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Conta *</label>
+                            <select id="b_tipo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${TIPOS_CONTA.map(t => `<option value="${t}" ${account && account.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Pessoa *</label>
+                            <select id="b_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${TIPOS_PESSOA.map(t => `<option value="${t}" ${account && account.tipoPessoa === t ? 'selected' : ''}>${t} - ${t === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Saldo Inicial (R$)</label>
+                        <input type="number" step="0.01" id="b_saldo" value="${account ? account.saldoInicial : 0}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                        <p class="text-xs text-slate-400 mt-1">Saldo atual da conta antes de começar a usar o sistema</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Cor da Conta</label>
+                            <input type="color" id="b_cor" value="${account ? account.cor : '#2563eb'}" class="w-full h-10 border border-slate-300 rounded-lg cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Ícone</label>
+                            <select id="b_icone" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${ICONES_BANCOS.map(i => `<option value="${i}" ${account && account.icone === i ? 'selected' : ''}>${i.replace('fa-', '')}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Conta Bancária</button>
+                </form>
+            </div>
+        `;
+        openModal();
+
+        document.getElementById('bankForm').onsubmit = (e) => {
+            e.preventDefault();
+            const data = {
+                nome: document.getElementById('b_nome').value,
+                tipo: document.getElementById('b_tipo').value,
+                tipoPessoa: document.getElementById('b_tipoPessoa').value,
+                saldoInicial: parseFloat(document.getElementById('b_saldo').value) || 0,
+                cor: document.getElementById('b_cor').value,
+                icone: document.getElementById('b_icone').value
             };
-        }
 
-        function openTransactionModal(id = null) {
-            const trans = id ? appData.transactions.find(t => t.id === id) : null;
-            const allCats = [
-                ...appData.categories.receitas.map(c => ({...c, type: 'RECEITA'})),
-                ...appData.categories.despesas.map(c => ({...c, type: 'DESPESA'}))
-            ];
-            
-            document.getElementById('modal-content').innerHTML = `
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-slate-800">${trans ? 'Editar' : 'Nova'} Transação</h3>
-                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                    </div>
-                    <form id="transForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
-                            <input type="text" id="t_desc" value="${trans ? trans.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$)</label>
-                                <input type="number" step="0.01" id="t_value" value="${trans ? trans.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Vencimento</label>
-                                <input type="date" id="t_date" value="${trans ? trans.date : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
-                                <select id="t_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
-                                    ${allCats.map(c => `<option value="${c.id}" ${trans && trans.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                                <select id="t_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
-                                    <option value="PENDENTE" ${trans && trans.status === 'PENDENTE' ? 'selected' : ''}>Pendente</option>
-                                    <option value="PAGO" ${trans && trans.status === 'PAGO' ? 'selected' : ''}>Pago</option>
-                                    <option value="VENCIDO" ${trans && trans.status === 'VENCIDO' ? 'selected' : ''}>Vencido</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition font-medium mt-6">Salvar Transação</button>
-                    </form>
+            if (account) { Object.assign(account, data); }
+            else { appData.bankAccounts.push({ id: 'b' + Date.now(), ...data }); }
+            saveData(); closeModal(); renderPage('contas');
+        };
+    }
+
+    // --- CONTRACT MODAL ---
+    function openContractModal(id = null) {
+        const contract = id ? appData.contracts.find(c => c.id === id) : null;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">${contract ? 'Editar' : 'Novo'} Contrato</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
                 </div>
-            `;
-            openModal();
+                <form id="contractForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente *</label>
+                        <input type="text" id="c_client" value="${contract ? contract.client : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$) *</label>
+                            <input type="number" step="0.01" id="c_value" value="${contract ? contract.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Status *</label>
+                            <select id="c_status" onchange="toggleMotivoPerda()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${STATUS_CONTRATO.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Responsável *</label>
+                        <input type="text" id="c_responsible" value="${contract ? contract.responsible : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Origem do Cliente</label>
+                            <select id="c_origem" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                <option value="">Selecione...</option>
+                                ${ORIGENS.map(o => `<option value="${o}" ${contract && contract.origem === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div id="motivoPerdaContainer" style="display: ${contract && contract.status === 'PERDIDA' ? 'block' : 'none'};">
+                            <label class="block text-sm font-medium text-red-700 mb-1">Motivo da Perda *</label>
+                            <select id="c_motivoPerda" class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                                <option value="">Selecione o motivo...</option>
+                                ${MOTIVOS_PERDA.map(m => `<option value="${m}" ${contract && contract.motivoPerda === m ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Contrato</button>
+                </form>
+            </div>
+        `;
+        openModal();
 
-            document.getElementById('transForm').onsubmit = (e) => {
-                e.preventDefault();
-                const selectedCat = allCats.find(c => c.id === document.getElementById('t_cat').value);
-                const data = {
-                    desc: document.getElementById('t_desc').value,
-                    value: parseFloat(document.getElementById('t_value').value),
-                    date: document.getElementById('t_date').value,
-                    catId: selectedCat.id,
-                    type: selectedCat.type,
-                    status: document.getElementById('t_status').value
-                };
+        document.getElementById('contractForm').onsubmit = (e) => {
+            e.preventDefault();
+            const status = document.getElementById('c_status').value;
+            const motivoPerda = status === 'PERDIDA' ? document.getElementById('c_motivoPerda').value : '';
+            if (status === 'PERDIDA' && !motivoPerda) { alert('Informe o motivo da perda!'); return; }
 
-                if (trans) {
-                    Object.assign(trans, data);
-                } else {
-                    appData.transactions.push({ id: 't' + Date.now(), ...data });
-                }
-                saveData();
-                closeModal();
-                renderPage('financeiro');
+            const data = {
+                client: document.getElementById('c_client').value,
+                value: parseFloat(document.getElementById('c_value').value),
+                status: status,
+                responsible: document.getElementById('c_responsible').value,
+                origem: document.getElementById('c_origem').value,
+                motivoPerda: motivoPerda
             };
-        }
 
-        function deleteContract(id) {
-            if(confirm('Tem certeza que deseja excluir este contrato?')) {
-                appData.contracts = appData.contracts.filter(c => c.id !== id);
-                saveData();
-                renderPage('crm');
+            if (contract) { Object.assign(contract, data); }
+            else { appData.contracts.push({ id: 'c' + Date.now(), ...data }); }
+            saveData(); closeModal(); renderPage('crm');
+        };
+    }
+
+    function toggleMotivoPerda() {
+        const status = document.getElementById('c_status').value;
+        const container = document.getElementById('motivoPerdaContainer');
+        container.style.display = status === 'PERDIDA' ? 'block' : 'none';
+    }
+
+    // --- TRANSACTION MODAL ---
+    function openTransactionModal(id = null) {
+        const trans = id ? appData.transactions.find(t => t.id === id) : null;
+        const allCats = [
+            ...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })),
+            ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))
+        ];
+
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">${trans ? 'Editar' : 'Nova'} Transação</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form id="transForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição *</label>
+                        <input type="text" id="t_desc" value="${trans ? trans.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$) *</label>
+                            <input type="number" step="0.01" id="t_value" value="${trans ? trans.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Vencimento *</label>
+                            <input type="date" id="t_date" value="${trans ? trans.date : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
+                            <select id="t_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${allCats.map(c => `<option value="${c.id}" ${trans && trans.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Status *</label>
+                            <select id="t_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${STATUS_TRANS.map(s => `<option value="${s}" ${trans && trans.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Forma de Pagamento</label>
+                            <select id="t_forma" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${FORMAS_PAGAMENTO.map(f => `<option value="${f}" ${trans && trans.formaPagamento === f ? 'selected' : ''}>${f}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo Pessoa</label>
+                            <select id="t_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${TIPOS_PESSOA.map(t => `<option value="${t}" ${trans && trans.tipoPessoa === t ? 'selected' : ''}>${t}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nº Parcelas</label>
+                            <input type="number" id="t_parcelas" min="1" max="48" value="${trans ? trans.parcelamento : 1}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                            <p class="text-xs text-slate-400 mt-1">1 = pagamento único</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Conta Bancária *</label>
+                        <select id="t_conta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                            <option value="">Selecione a conta...</option>
+                            ${appData.bankAccounts.map(b => `<option value="${b.id}" ${trans && trans.contaId === b.id ? 'selected' : ''}>${b.nome} (${b.tipoPessoa})</option>`).join('')}
+                        </select>
+                        <p class="text-xs text-slate-400 mt-1">Vincule a transação a uma conta bancária específica</p>
+                    </div>
+                    <div id="installmentPreview" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <p class="text-sm font-semibold text-purple-800"><i class="fas fa-info-circle mr-1"></i>Preview do Parcelamento</p>
+                        <p class="text-xs text-purple-700 mt-1" id="installmentPreviewText"></p>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg hover:bg-emerald-700 transition font-medium mt-4">Salvar Transação</button>
+                </form>
+            </div>
+        `;
+        openModal();
+
+        const updatePreview = () => {
+            const val = parseFloat(document.getElementById('t_value').value) || 0;
+            const parc = parseInt(document.getElementById('t_parcelas').value) || 1;
+            const preview = document.getElementById('installmentPreview');
+            const previewText = document.getElementById('installmentPreviewText');
+            if (parc > 1 && val > 0) {
+                preview.classList.remove('hidden');
+                previewText.innerHTML = `Serão geradas <strong>${parc} parcelas</strong> de <strong>${formatCurrency(val / parc)}</strong> cada, totalizando <strong>${formatCurrency(val)}</strong>.`;
+            } else { preview.classList.add('hidden'); }
+        };
+        document.getElementById('t_value').addEventListener('input', updatePreview);
+        document.getElementById('t_parcelas').addEventListener('input', updatePreview);
+        updatePreview();
+
+        document.getElementById('transForm').onsubmit = (e) => {
+            e.preventDefault();
+            const selectedCat = allCats.find(c => c.id === document.getElementById('t_cat').value);
+            const parcelas = parseInt(document.getElementById('t_parcelas').value) || 1;
+            const valorTotal = parseFloat(document.getElementById('t_value').value);
+            const valorParcela = valorTotal / parcelas;
+            const baseDate = document.getElementById('t_date').value;
+            const contaId = document.getElementById('t_conta').value;
+            const grupoId = 'g' + Date.now();
+
+            const data = {
+                desc: document.getElementById('t_desc').value,
+                catId: selectedCat.id,
+                type: selectedCat.type,
+                status: document.getElementById('t_status').value,
+                formaPagamento: document.getElementById('t_forma').value,
+                tipoPessoa: document.getElementById('t_tipoPessoa').value,
+                parcelamento: parcelas,
+                contaId: contaId || null,
+                grupoId: parcelas > 1 ? grupoId : null
+            };
+
+            if (trans) {
+                if (trans.grupoId) {
+                    appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId || t.id === trans.id);
+                }
+                if (parcelas > 1) {
+                    for (let i = 0; i < parcelas; i++) {
+                        const d = new Date(baseDate + 'T00:00:00');
+                        d.setMonth(d.getMonth() + i);
+                        const installmentData = {
+                            ...data,
+                            id: i === 0 ? trans.id : 't' + Date.now() + '_' + i,
+                            value: valorParcela,
+                            date: d.toISOString().split('T')[0],
+                            parcelaAtual: i + 1,
+                            grupoId: grupoId
+                        };
+                        if (i === 0) { Object.assign(trans, installmentData); }
+                        else { appData.transactions.push(installmentData); }
+                    }
+                } else {
+                    Object.assign(trans, { ...data, value: valorTotal, date: baseDate, parcelaAtual: 1, grupoId: null });
+                }
+            } else {
+                for (let i = 0; i < parcelas; i++) {
+                    const d = new Date(baseDate + 'T00:00:00');
+                    d.setMonth(d.getMonth() + i);
+                    appData.transactions.push({
+                        id: 't' + Date.now() + '_' + i,
+                        desc: document.getElementById('t_desc').value,
+                        catId: selectedCat.id,
+                        type: selectedCat.type,
+                        value: valorParcela,
+                        date: d.toISOString().split('T')[0],
+                        status: document.getElementById('t_status').value,
+                        formaPagamento: document.getElementById('t_forma').value,
+                        tipoPessoa: document.getElementById('t_tipoPessoa').value,
+                        parcelamento: parcelas,
+                        parcelaAtual: i + 1,
+                        contaId: contaId || null,
+                        grupoId: parcelas > 1 ? grupoId : null
+                    });
+                }
             }
-        }
+            saveData(); closeModal(); renderPage('financeiro');
+        };
+    }
 
-        function deleteTransaction(id) {
-            if(confirm('Tem certeza que deseja excluir esta transação?')) {
+    // --- INSTALLMENT MODAL ---
+    function openInstallmentModal(id = null) {
+        const inst = id ? appData.parcelamentos.find(p => p.id === id) : null;
+        const allCats = [
+            ...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })),
+            ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))
+        ];
+
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">${inst ? 'Editar' : 'Novo'} Parcelamento</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form id="instForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição *</label>
+                        <input type="text" id="i_desc" value="${inst ? inst.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Valor Total (R$) *</label>
+                            <input type="number" step="0.01" id="i_value" value="${inst ? inst.valueTotal : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nº de Parcelas *</label>
+                            <input type="number" id="i_parcelas" min="2" max="48" value="${inst ? inst.parcelas : 12}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
+                            <select id="i_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${allCats.map(c => `<option value="${c.id}" ${inst && inst.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Data da 1ª Parcela *</label>
+                            <input type="date" id="i_dataInicio" value="${inst ? inst.dataInicio : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Forma de Pagamento</label>
+                            <select id="i_forma" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${FORMAS_PAGAMENTO.map(f => `<option value="${f}" ${inst && inst.formaPagamento === f ? 'selected' : ''}>${f}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo Pessoa</label>
+                            <select id="i_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                                ${TIPOS_PESSOA.map(t => `<option value="${t}" ${inst && inst.tipoPessoa === t ? 'selected' : ''}>${t} - ${t === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Conta Bancária *</label>
+                        <select id="i_conta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                            <option value="">Selecione a conta...</option>
+                            ${appData.bankAccounts.map(b => `<option value="${b.id}" ${inst && inst.contaId === b.id ? 'selected' : ''}>${b.nome} (${b.tipoPessoa})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <p class="text-sm font-semibold text-purple-800"><i class="fas fa-info-circle mr-1"></i>Resumo</p>
+                        <p class="text-xs text-purple-700 mt-1">Ao salvar, o sistema gerará automaticamente as parcelas mensais no módulo Financeiro.</p>
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 transition font-medium mt-4">Salvar Parcelamento</button>
+                </form>
+            </div>
+        `;
+        openModal();
+
+        document.getElementById('instForm').onsubmit = (e) => {
+            e.preventDefault();
+            const selectedCat = allCats.find(c => c.id === document.getElementById('i_cat').value);
+            const data = {
+                desc: document.getElementById('i_desc').value,
+                catId: selectedCat.id,
+                type: selectedCat.type,
+                valueTotal: parseFloat(document.getElementById('i_value').value),
+                parcelas: parseInt(document.getElementById('i_parcelas').value),
+                dataInicio: document.getElementById('i_dataInicio').value,
+                formaPagamento: document.getElementById('i_forma').value,
+                tipoPessoa: document.getElementById('i_tipoPessoa').value,
+                contaId: document.getElementById('i_conta').value,
+                status: 'ATIVO'
+            };
+
+            if (inst) { Object.assign(inst, data); }
+            else { appData.parcelamentos.push({ id: 'p' + Date.now(), ...data }); }
+
+            const grupoId = 'pg' + Date.now();
+            const valorParcela = data.valueTotal / data.parcelas;
+            for (let i = 0; i < data.parcelas; i++) {
+                const d = new Date(data.dataInicio + 'T00:00:00');
+                d.setMonth(d.getMonth() + i);
+                appData.transactions.push({
+                    id: 'pt' + Date.now() + '_' + i,
+                    desc: `${data.desc} (${i + 1}/${data.parcelas})`,
+                    catId: data.catId,
+                    type: data.type,
+                    value: valorParcela,
+                    date: d.toISOString().split('T')[0],
+                    status: 'PENDENTE',
+                    formaPagamento: data.formaPagamento,
+                    tipoPessoa: data.tipoPessoa,
+                    parcelamento: data.parcelas,
+                    parcelaAtual: i + 1,
+                    contaId: data.contaId,
+                    grupoId: grupoId
+                });
+            }
+
+            saveData(); closeModal(); renderPage('parcelamentos');
+        };
+    }
+
+    // --- CATEGORY MODAL ---
+    function openCategoryModal(tipo) {
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">Nova Categoria de ${tipo === 'receita' ? 'Receita' : 'Despesa'}</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form id="catForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome da Categoria *</label>
+                        <input type="text" id="cat_nome" placeholder="Ex: Receita- Consultoria" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                        <select id="cat_tipo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                            <option value="Recorrente">Recorrente</option>
+                            <option value="Pontual">Pontual</option>
+                            <option value="Variável">Variável</option>
+                            <option value="Fixo">Fixo</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Adicionar Categoria</button>
+                </form>
+            </div>
+        `;
+        openModal();
+
+        document.getElementById('catForm').onsubmit = (e) => {
+            e.preventDefault();
+            const newCat = {
+                id: (tipo === 'receita' ? 'r' : 'd') + Date.now(),
+                nome: document.getElementById('cat_nome').value,
+                tipo: document.getElementById('cat_tipo').value
+            };
+            if (tipo === 'receita') { appData.categories.receitas.push(newCat); }
+            else { appData.categories.despesas.push(newCat); }
+            saveData(); closeModal(); renderPage('config');
+        };
+    }
+
+    // ==========================================
+    // DELETE FUNCTIONS
+    // ==========================================
+    function deleteContract(id) {
+        if (confirm('Tem certeza que deseja excluir este contrato?')) {
+            appData.contracts = appData.contracts.filter(c => c.id !== id);
+            saveData(); renderPage('crm');
+        }
+    }
+    function deleteTransaction(id) {
+        if (confirm('Tem certeza que deseja excluir esta transação?')) {
+            const trans = appData.transactions.find(t => t.id === id);
+            if (trans && trans.grupoId) {
+                if (confirm('Esta transação faz parte de um parcelamento. Deseja excluir TODAS as parcelas?')) {
+                    appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId);
+                } else {
+                    appData.transactions = appData.transactions.filter(t => t.id !== id);
+                }
+            } else {
                 appData.transactions = appData.transactions.filter(t => t.id !== id);
-                saveData();
-                renderPage('financeiro');
+            }
+            saveData(); renderPage('financeiro');
+        }
+    }
+    function deleteInstallment(id) {
+        if (confirm('Tem certeza que deseja excluir este parcelamento e todas as suas parcelas?')) {
+            const inst = appData.parcelamentos.find(p => p.id === id);
+            if (inst) {
+                const relatedTrans = appData.transactions.filter(t => t.desc.startsWith(inst.desc));
+                relatedTrans.forEach(t => {
+                    appData.transactions = appData.transactions.filter(x => x.id !== t.id);
+                });
+            }
+            appData.parcelamentos = appData.parcelamentos.filter(p => p.id !== id);
+            saveData(); renderPage('parcelamentos');
+        }
+    }
+    function deleteBankAccount(id) {
+        const transacoesVinculadas = appData.transactions.filter(t => t.contaId === id).length;
+        if (transacoesVinculadas > 0) {
+            if (!confirm(`Esta conta possui ${transacoesVinculadas} transações vinculadas. Deseja excluir mesmo assim? As transações ficarão sem conta vinculada.`)) {
+                return;
             }
         }
+        if (confirm('Tem certeza que deseja excluir esta conta bancária?')) {
+            appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id);
+            // Remove vínculo das transações
+            appData.transactions.forEach(t => {
+                if (t.contaId === id) t.contaId = null;
+            });
+            saveData(); renderPage('contas');
+        }
+    }
+    function deleteCategory(tipo, id) {
+        if (confirm('Tem certeza que deseja excluir esta categoria?')) {
+            if (tipo === 'receita') { appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id); }
+            else { appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id); }
+            saveData(); renderPage('config');
+        }
+    }
 
-        // ==========================================
-        // 8. INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPage('dashboard');
-        });
+    // ==========================================
+    // INIT
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => { renderPage('dashboard'); });
     </script>
 </body>
 </html>
