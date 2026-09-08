@@ -88,7 +88,7 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
-                <p>GCW v5.0 - Gestão com Wesley</p>
+                <p>GCW v5.1 - Gestão com Wesley</p>
                 <p class="mt-1">Dados salvos localmente</p>
             </div>
         </aside>
@@ -148,7 +148,8 @@
     const FORMAS_PAGAMENTO = ['CRÉDITO', 'DÉBITO', 'PIX', 'TRANSFERÊNCIA', 'BOLETO', 'DINHEIRO'];
     const TIPOS_PESSOA = ['PF', 'PJ'];
     const STATUS_TRANS = ['PAGO', 'VENCIDO', 'PENDENTE'];
-    const STATUS_CONTRATO = ['AGUARDANDO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA', 'ENCERRADO'];
+    // ADICIONADO: EM_ELABORACAO
+    const STATUS_CONTRATO = ['AGUARDANDO', 'EM_ELABORACAO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA', 'ENCERRADO'];
     const TIPOS_CONTA = ['CORRENTE', 'POUPANÇA', 'INVESTIMENTO', 'CARTÃO DE CRÉDITO', 'CARTEIRA DIGITAL'];
     const ICONES_BANCOS = ['fa-university', 'fa-credit-card', 'fa-wallet', 'fa-piggy-bank', 'fa-mobile-alt', 'fa-coins'];
 
@@ -175,16 +176,16 @@
             { id: 'b4', nome: 'Cartão Nubank', tipo: 'CARTÃO DE CRÉDITO', tipoPessoa: 'PF', saldoInicial: 0, cor: '#820AD1', icone: 'fa-credit-card' }
         ],
         contracts: [
-            { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva', origem: 'INDICAÇÃO', motivoPerda: '' },
-            { id: 'c2', client: 'Tech Solutions', value: 15000, status: 'ATIVO', responsible: 'Maria Souza', origem: 'BNI', motivoPerda: '' },
-            { id: 'c3', client: 'Global Services', value: 20738.80, status: 'ATIVO', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: '' },
-            { id: 'c4', client: 'Mega Corp', value: 20000, status: 'ATIVO', responsible: 'Pedro Lima', origem: 'PROSPECÇÃO', motivoPerda: '' },
-            { id: 'c5', client: 'StartUp X', value: 12000, status: 'NAO_INICIADO', responsible: 'Maria Souza', origem: 'CLIENTE', motivoPerda: '' },
-            { id: 'c6', client: 'Beta Inc', value: 8000, status: 'NAO_INICIADO', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: '' },
-            { id: 'c7', client: 'Empresa Y', value: 5000, status: 'REUNIAO', responsible: 'João Silva', origem: 'BNI', motivoPerda: '' },
-            { id: 'c8', client: 'Corp Z', value: 15000, status: 'ENVIADA', responsible: 'Maria Souza', origem: 'PROSPECÇÃO', motivoPerda: '' },
-            { id: 'c9', client: 'Delta Ltd', value: 9000, status: 'PERDIDA', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: 'PREÇO' },
-            { id: 'c10', client: 'Omega SA', value: 7000, status: 'PERDIDA', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: 'ESCOLHEU CONCORRENTE' }
+            { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva', origem: 'INDICAÇÃO', motivoPerda: '', descricao: 'Assessoria mensal de gestão financeira e estratégica.' },
+            { id: 'c2', client: 'Tech Solutions', value: 15000, status: 'ATIVO', responsible: 'Maria Souza', origem: 'BNI', motivoPerda: '', descricao: 'Consultoria em processos e automação.' },
+            { id: 'c3', client: 'Global Services', value: 20738.80, status: 'ATIVO', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: '', descricao: null },
+            { id: 'c4', client: 'Mega Corp', value: 20000, status: 'ATIVO', responsible: 'Pedro Lima', origem: 'PROSPECÇÃO', motivoPerda: '', descricao: 'Implementação de sistema de CRM.' },
+            { id: 'c5', client: 'StartUp X', value: 12000, status: 'NAO_INICIADO', responsible: 'Maria Souza', origem: 'CLIENTE', motivoPerda: '', descricao: null },
+            { id: 'c6', client: 'Beta Inc', value: 8000, status: 'NAO_INICIADO', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: '', descricao: null },
+            { id: 'c7', client: 'Empresa Y', value: 5000, status: 'REUNIAO', responsible: 'João Silva', origem: 'BNI', motivoPerda: '', descricao: null },
+            { id: 'c8', client: 'Corp Z', value: 15000, status: 'ENVIADA', responsible: 'Maria Souza', origem: 'PROSPECÇÃO', motivoPerda: '', descricao: 'Proposta de auditoria financeira.' },
+            { id: 'c9', client: 'Delta Ltd', value: 9000, status: 'PERDIDA', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: 'PREÇO', descricao: null },
+            { id: 'c10', client: 'Omega SA', value: 7000, status: 'PERDIDA', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: 'ESCOLHEU CONCORRENTE', descricao: null }
         ],
         transactions: [
             { id: 't1', desc: 'Mensalidade Assessoria - Alpha', catId: 'r1', type: 'RECEITA', value: 5000, date: '2025-01-10', status: 'PAGO', formaPagamento: 'PIX', tipoPessoa: 'PJ', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b1' },
@@ -286,9 +287,13 @@
         });
 
         // 4. Propostas Enviadas/Reuniões Agendadas (INFO)
-        const emNegociacao = appData.contracts.filter(c => ['ENVIADA', 'REUNIAO'].includes(c.status));
+        const emNegociacao = appData.contracts.filter(c => ['ENVIADA', 'REUNIAO', 'EM_ELABORACAO'].includes(c.status));
         emNegociacao.forEach(c => {
-            const statusText = c.status === 'ENVIADA' ? 'Proposta Enviada' : 'Reunião Agendada';
+            let statusText = 'Em Negociação';
+            if (c.status === 'ENVIADA') statusText = 'Proposta Enviada';
+            else if (c.status === 'REUNIAO') statusText = 'Reunião Agendada';
+            else if (c.status === 'EM_ELABORACAO') statusText = 'Proposta em Elaboração';
+            
             notifications.push({
                 id: 'n_neg_' + c.id,
                 type: 'INFO',
@@ -438,24 +443,17 @@
     }
 
     function handleNotificationClick(pageType, id, notificationId) {
-        // Mark as read
         const notifications = generateNotifications();
         const notif = notifications.find(n => n.id === notificationId);
         if (notif) {
             notif.read = true;
-            // Save read status (simplified - in production would use a separate store)
         }
-        
-        // Navigate to the relevant page
         switchPage(pageType, document.querySelector(`[onclick="switchPage('${pageType}', this)"]`));
-        
-        // Close dropdown
         document.getElementById('notification-dropdown').classList.add('hidden');
         updateNotificationBadge();
     }
 
     function markAllAsRead() {
-        // In a real app, this would update the database
         alert('Todas as notificações marcadas como lidas!');
         updateNotificationBadge();
         renderNotifications();
@@ -468,7 +466,6 @@
         }
     }
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         const dropdown = document.getElementById('notification-dropdown');
         const bell = e.target.closest('button[onclick="toggleNotifications()"]');
@@ -551,7 +548,7 @@
                     <h3 class="text-lg font-semibold text-slate-800 mb-3">Resumo da Carteira</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Contratos Ativos</span><span class="font-bold text-slate-800">${ativos.length}</span></div>
-                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Em Negociação</span><span class="font-bold text-slate-800">${contracts.filter(x => ['REUNIAO','ENVIADA','AGUARDANDO'].includes(x.status)).length}</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Em Negociação</span><span class="font-bold text-slate-800">${contracts.filter(x => ['REUNIAO','ENVIADA','AGUARDANDO','EM_ELABORACAO'].includes(x.status)).length}</span></div>
                         <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Perdidas</span><span class="font-bold text-slate-800">${contracts.filter(x => x.status === 'PERDIDA').length}</span></div>
                         <div class="flex justify-between items-center"><span class="text-slate-600">Ticket Médio Ativo</span><span class="font-bold text-primary-600">${ativos.length > 0 ? formatCurrency(valorContratado / ativos.length) : 'R$ 0,00'}</span></div>
                     </div>
@@ -592,12 +589,12 @@
         }
         const ctx2 = document.getElementById('contractStatusChart');
         if (ctx2) {
-            const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA', 'AGUARDANDO', 'ENCERRADO'];
-            const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#64748b', '#94a3b8'];
+            const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA', 'AGUARDANDO', 'EM_ELABORACAO', 'ENCERRADO'];
+            const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#64748b', '#06b6d4', '#94a3b8'];
             const data = statuses.map(s => appData.contracts.filter(c => c.status === s).length);
             new Chart(ctx2, {
                 type: 'doughnut',
-                data: { labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas', 'Aguardando', 'Encerrados'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] },
+                data: { labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas', 'Aguardando', 'Em Elaboração', 'Encerrados'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] },
                 options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } } }
             });
         }
@@ -607,8 +604,10 @@
     // CRM
     // ==========================================
     function renderCRM(c) {
+        // ADICIONADO: Coluna EM_ELABORACAO
         const columns = [
             { id: 'AGUARDANDO', title: 'Aguardando Retorno', color: 'gray' },
+            { id: 'EM_ELABORACAO', title: 'Em Elaboração', color: 'cyan' },
             { id: 'REUNIAO', title: 'Reuniões Agendadas', color: 'blue' },
             { id: 'ENVIADA', title: 'Propostas Enviadas', color: 'yellow' },
             { id: 'ATIVO', title: 'Contratos Ativos', color: 'green' },
@@ -642,6 +641,7 @@
                                 <div onclick="openContractModal('${c.id}')" class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 cursor-pointer card-hover">
                                     <p class="font-semibold text-slate-800 text-sm">${c.client}</p>
                                     <p class="text-base font-bold text-primary-600 mt-1">${formatCurrency(c.value)}</p>
+                                    ${c.descricao ? `<p class="text-xs text-slate-500 mt-1 line-clamp-2"><i class="fas fa-align-left mr-1"></i>${c.descricao}</p>` : ''}
                                     <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
                                         <span class="text-xs text-slate-500"><i class="fas fa-user mr-1"></i>${c.responsible}</span>
                                         ${c.origem ? `<span class="tag tag-blue text-[10px]">${c.origem}</span>` : ''}
@@ -1129,7 +1129,7 @@
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Status *</label>
                             <select id="c_status" onchange="toggleMotivoPerda()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${STATUS_CONTRATO.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                                ${STATUS_CONTRATO.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s.replace('_', ' ')}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -1137,6 +1137,14 @@
                         <label class="block text-sm font-medium text-slate-700 mb-1">Responsável *</label>
                         <input type="text" id="c_responsible" value="${contract ? contract.responsible : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
                     </div>
+                    
+                    <!-- ADICIONADO: Campo de Descrição dos Serviços -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição dos Serviços (Opcional)</label>
+                        <textarea id="c_descricao" rows="3" placeholder="Descreva os serviços a serem realizados..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-none">${contract ? (contract.descricao || '') : ''}</textarea>
+                        <p class="text-xs text-slate-400 mt-1">Informe os principais serviços ou escopo do contrato</p>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Origem do Cliente</label>
@@ -1170,6 +1178,7 @@
                 value: parseFloat(document.getElementById('c_value').value),
                 status: status,
                 responsible: document.getElementById('c_responsible').value,
+                descricao: document.getElementById('c_descricao').value || null, // ADICIONADO
                 origem: document.getElementById('c_origem').value,
                 motivoPerda: motivoPerda
             };
