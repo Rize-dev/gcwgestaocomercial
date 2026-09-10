@@ -39,6 +39,7 @@
         .notification-item.read { opacity: 0.7; }
         .pulse-dot { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        #login-screen { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
     </style>
     <script>
         tailwind.config = {
@@ -54,8 +55,50 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-    <div class="flex h-screen overflow-hidden">
-        <!-- SIDEBAR -->
+    <!-- ========================================== -->
+    <!-- TELA DE LOGIN -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 fade-in">
+            <div class="text-center mb-8">
+                <img src="https://i.postimg.cc/28YKKZXJ/Whats-App-Image-2026-08-30-at-17-28-02.jpg" alt="GCW Logo" class="w-40 h-auto mx-auto mb-4" onerror="this.style.display='none'">
+                <h2 class="text-2xl font-bold text-slate-800">Gestão com Wesley</h2>
+                <p class="text-slate-500 text-sm mt-1">Acesse sua conta para continuar</p>
+            </div>
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-3 top-3 text-slate-400"></i>
+                        <input type="email" id="loginEmail" value="admin@gcw.com" class="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-3 text-slate-400"></i>
+                        <input type="password" id="loginPassword" value="123456" class="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition" required>
+                    </div>
+                </div>
+                <div id="loginError" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
+                    <i class="fas fa-exclamation-circle mr-2"></i> E-mail ou senha incorretos.
+                </div>
+                <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 transition font-semibold shadow-lg shadow-primary-500/30 flex items-center justify-center">
+                    <span id="loginBtnText">Entrar no Sistema</span>
+                    <i id="loginSpinner" class="fas fa-circle-notch fa-spin ml-2 hidden"></i>
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-400">
+                <p>Versão 6.0 (Produção Ready)</p>
+                <p class="mt-1">Teste: admin@gcw.com / 123456</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SISTEMA PRINCIPAL -->
+    <!-- ========================================== -->
+    <div id="main-app" class="hidden flex h-screen overflow-hidden">
         <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10 flex-shrink-0">
             <div class="p-5 border-b border-slate-800 logo-container">
                 <div class="flex flex-col items-center">
@@ -66,7 +109,6 @@
                     </div>
                 </div>
             </div>
-            
             <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
                 <a href="#" onclick="switchPage('dashboard', this)" class="sidebar-link active flex items-center p-3 rounded-lg transition-all">
                     <i class="fas fa-chart-pie w-6"></i> Dashboard
@@ -88,12 +130,11 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
-                <p>GCW v5.1 - Gestão com Wesley</p>
-                <p class="mt-1">Dados salvos localmente</p>
+                <p>GCW v6.0 - Gestão com Wesley</p>
+                <p class="mt-1 text-green-400"><i class="fas fa-database mr-1"></i>Pronto para DB</p>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-50">
             <header class="flex justify-between items-center mb-6">
                 <div>
@@ -101,13 +142,11 @@
                     <p class="text-slate-500 text-sm">Visão consolidada e em tempo real do seu negócio</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <!-- NOTIFICATION BELL -->
                     <div class="relative">
                         <button onclick="toggleNotifications()" class="p-2 text-slate-400 hover:text-slate-600 relative">
                             <i class="fas fa-bell text-xl"></i>
                             <span id="notification-badge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center pulse-dot">0</span>
                         </button>
-                        <!-- NOTIFICATION DROPDOWN -->
                         <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-slate-200 notification-dropdown z-50 max-h-[500px] overflow-hidden">
                             <div class="p-4 border-b border-slate-200 bg-slate-50">
                                 <div class="flex justify-between items-center">
@@ -115,9 +154,7 @@
                                     <button onclick="markAllAsRead()" class="text-xs text-primary-600 hover:text-primary-800 font-medium">Marcar todas como lidas</button>
                                 </div>
                             </div>
-                            <div id="notification-list" class="overflow-y-auto max-h-[400px]">
-                                <!-- Notifications injected here -->
-                            </div>
+                            <div id="notification-list" class="overflow-y-auto max-h-[400px]"></div>
                             <div class="p-3 border-t border-slate-200 bg-slate-50 text-center">
                                 <button onclick="clearAllNotifications()" class="text-xs text-slate-500 hover:text-slate-700">Limpar todas</button>
                             </div>
@@ -126,10 +163,12 @@
                     <div class="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-200">
                         <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">W</div>
                         <span class="font-medium text-sm text-slate-700 hidden sm:inline">Wesley</span>
+                        <button onclick="logout()" class="ml-2 text-slate-400 hover:text-red-500 transition" title="Sair">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
                     </div>
                 </div>
             </header>
-
             <div id="pages-container"></div>
         </main>
     </div>
@@ -141,14 +180,13 @@
 
     <script>
     // ==========================================
-    // DATA & STATE
+    // DADOS E ESTADO
     // ==========================================
     const ORIGENS = ['INDICAÇÃO', 'PARCERIA', 'BNI', 'CLIENTE', 'PROSPECÇÃO'];
     const MOTIVOS_PERDA = ['ESCOLHEU CONCORRENTE', 'FEZ INTERNAMENTE', 'SEM ORÇAMENTO', 'PREÇO', 'PROJETO ADIADO', 'NÃO RESPONDEU'];
     const FORMAS_PAGAMENTO = ['CRÉDITO', 'DÉBITO', 'PIX', 'TRANSFERÊNCIA', 'BOLETO', 'DINHEIRO'];
     const TIPOS_PESSOA = ['PF', 'PJ'];
     const STATUS_TRANS = ['PAGO', 'VENCIDO', 'PENDENTE'];
-    // ADICIONADO: EM_ELABORACAO
     const STATUS_CONTRATO = ['AGUARDANDO', 'EM_ELABORACAO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA', 'ENCERRADO'];
     const TIPOS_CONTA = ['CORRENTE', 'POUPANÇA', 'INVESTIMENTO', 'CARTÃO DE CRÉDITO', 'CARTEIRA DIGITAL'];
     const ICONES_BANCOS = ['fa-university', 'fa-credit-card', 'fa-wallet', 'fa-piggy-bank', 'fa-mobile-alt', 'fa-coins'];
@@ -176,7 +214,7 @@
             { id: 'b4', nome: 'Cartão Nubank', tipo: 'CARTÃO DE CRÉDITO', tipoPessoa: 'PF', saldoInicial: 0, cor: '#820AD1', icone: 'fa-credit-card' }
         ],
         contracts: [
-            { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva', origem: 'INDICAÇÃO', motivoPerda: '', descricao: 'Assessoria mensal de gestão financeira e estratégica.' },
+            { id: 'c1', client: 'Cliente Alpha', value: 25000, status: 'ATIVO', responsible: 'João Silva', origem: 'INDICAÇÃO', motivoPerda: '', descricao: 'Assessoria mensal de gestão financeira.' },
             { id: 'c2', client: 'Tech Solutions', value: 15000, status: 'ATIVO', responsible: 'Maria Souza', origem: 'BNI', motivoPerda: '', descricao: 'Consultoria em processos e automação.' },
             { id: 'c3', client: 'Global Services', value: 20738.80, status: 'ATIVO', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: '', descricao: null },
             { id: 'c4', client: 'Mega Corp', value: 20000, status: 'ATIVO', responsible: 'Pedro Lima', origem: 'PROSPECÇÃO', motivoPerda: '', descricao: 'Implementação de sistema de CRM.' },
@@ -203,7 +241,10 @@
     let currentMonthFilter = new Date().toISOString().slice(0, 7);
     let currentAccountFilter = 'todas';
 
-    function saveData() { localStorage.setItem('gcwData', JSON.stringify(appData)); }
+    function saveData() { 
+        // 🔌 SUBSTITUIR POR: await supabase.from('tabela').upsert(dados)
+        localStorage.setItem('gcwData', JSON.stringify(appData)); 
+    }
     function formatCurrency(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v); }
     function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR'); }
     function getMonthName(ym) { const [y, m] = ym.split('-'); const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return `${months[parseInt(m)-1]} ${y}`; }
@@ -218,168 +259,79 @@
     }
 
     // ==========================================
-    // NOTIFICATION SYSTEM
+    // 🔐 SISTEMA DE LOGIN
+    // ==========================================
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+        const btnText = document.getElementById('loginBtnText');
+        const spinner = document.getElementById('loginSpinner');
+
+        btnText.innerText = 'Autenticando...';
+        spinner.classList.remove('hidden');
+        errorDiv.classList.add('hidden');
+
+        await new Promise(r => setTimeout(r, 600));
+
+        if (email === 'admin@gcw.com' && password === '123456') {
+            localStorage.setItem('gcw_auth', 'true');
+            showMainApp();
+        } else {
+            errorDiv.classList.remove('hidden');
+            btnText.innerText = 'Entrar no Sistema';
+            spinner.classList.add('hidden');
+        }
+    });
+
+    function showMainApp() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        renderPage('dashboard');
+        updateNotificationBadge();
+    }
+
+    function logout() {
+        if(confirm('Deseja realmente sair do sistema?')) {
+            localStorage.removeItem('gcw_auth');
+            location.reload();
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('gcw_auth') === 'true') {
+            showMainApp();
+        }
+    });
+
+    // ==========================================
+    // NOTIFICAÇÕES
     // ==========================================
     function generateNotifications() {
         const notifications = [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const threeDaysFromNow = new Date(today);
-        threeDaysFromNow.setDate(today.getDate() + 3);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const threeDaysFromNow = new Date(today); threeDaysFromNow.setDate(today.getDate() + 3);
 
-        // 1. Contas Vencidas (URGENTE)
-        const vencidas = appData.transactions.filter(t => t.status === 'VENCIDO');
-        vencidas.forEach(t => {
+        appData.transactions.filter(t => t.status === 'VENCIDO').forEach(t => {
             const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
-            notifications.push({
-                id: 'n_venc_' + t.id,
-                type: 'URGENTE',
-                icon: 'fa-exclamation-circle',
-                color: 'red',
-                title: 'Conta Vencida!',
-                message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`,
-                category: cat ? cat.nome : 'N/A',
-                date: new Date().toISOString(),
-                read: false,
-                action: { type: 'financeiro', id: t.id }
-            });
+            notifications.push({ id: 'n_venc_' + t.id, type: 'URGENTE', icon: 'fa-exclamation-circle', color: 'red', title: 'Conta Vencida!', message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id } });
         });
 
-        // 2. Contas Próximas do Vencimento (próximos 3 dias)
-        const proximas = appData.transactions.filter(t => {
+        appData.transactions.filter(t => {
             if (t.status !== 'PENDENTE') return false;
             const dueDate = new Date(t.date + 'T00:00:00');
             return dueDate >= today && dueDate <= threeDaysFromNow;
-        });
-        proximas.forEach(t => {
+        }).forEach(t => {
             const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
             const dueDate = new Date(t.date + 'T00:00:00');
             const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-            notifications.push({
-                id: 'n_prox_' + t.id,
-                type: 'AVISO',
-                icon: 'fa-clock',
-                color: 'yellow',
-                title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`,
-                message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`,
-                category: cat ? cat.nome : 'N/A',
-                date: new Date().toISOString(),
-                read: false,
-                action: { type: 'financeiro', id: t.id }
-            });
+            notifications.push({ id: 'n_prox_' + t.id, type: 'AVISO', icon: 'fa-clock', color: 'yellow', title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`, message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id } });
         });
 
-        // 3. Receitas Recebidas (SUCESSO)
-        const recebidas = appData.transactions.filter(t => t.type === 'RECEITA' && t.status === 'PAGO');
-        recebidas.slice(0, 3).forEach(t => {
-            notifications.push({
-                id: 'n_rec_' + t.id,
-                type: 'SUCESSO',
-                icon: 'fa-check-circle',
-                color: 'green',
-                title: 'Receita Confirmada!',
-                message: `${t.desc} - ${formatCurrency(t.value)} recebido em ${formatDate(t.date)}`,
-                category: 'Receita',
-                date: new Date().toISOString(),
-                read: false,
-                action: { type: 'financeiro', id: t.id }
-            });
-        });
-
-        // 4. Propostas Enviadas/Reuniões Agendadas (INFO)
-        const emNegociacao = appData.contracts.filter(c => ['ENVIADA', 'REUNIAO', 'EM_ELABORACAO'].includes(c.status));
-        emNegociacao.forEach(c => {
-            let statusText = 'Em Negociação';
-            if (c.status === 'ENVIADA') statusText = 'Proposta Enviada';
-            else if (c.status === 'REUNIAO') statusText = 'Reunião Agendada';
-            else if (c.status === 'EM_ELABORACAO') statusText = 'Proposta em Elaboração';
-            
-            notifications.push({
-                id: 'n_neg_' + c.id,
-                type: 'INFO',
-                icon: 'fa-handshake',
-                color: 'blue',
-                title: statusText,
-                message: `${c.client} - ${formatCurrency(c.value)} com ${c.responsible}`,
-                category: 'CRM',
-                date: new Date().toISOString(),
-                read: false,
-                action: { type: 'crm', id: c.id }
-            });
-        });
-
-        // 5. Parcelamentos Ativos (INFO)
-        const parcelamentosAtivos = appData.parcelamentos.filter(p => p.status === 'ATIVO');
-        parcelamentosAtivos.forEach(p => {
-            const parcelasPagas = appData.transactions.filter(t => t.desc.startsWith(p.desc) && t.status === 'PAGO').length;
-            notifications.push({
-                id: 'n_par_' + p.id,
-                type: 'INFO',
-                icon: 'fa-calendar-alt',
-                color: 'purple',
-                title: 'Parcelamento Ativo',
-                message: `${p.desc} - ${parcelasPagas}/${p.parcelas} parcelas pagas (${formatCurrency(p.valueTotal)})`,
-                category: 'Parcelamentos',
-                date: new Date().toISOString(),
-                read: false,
-                action: { type: 'parcelamentos', id: p.id }
-            });
-        });
-
-        // 6. Contratos Perdidos (AVISO)
-        const perdidos = appData.contracts.filter(c => c.status === 'PERDIDA');
-        perdidos.slice(0, 2).forEach(c => {
-            notifications.push({
-                id: 'n_perd_' + c.id,
-                type: 'AVISO',
-                icon: 'fa-times-circle',
-                color: 'red',
-                title: 'Contrato Perdido',
-                message: `${c.client} - ${formatCurrency(c.value)} | Motivo: ${c.motivoPerda || 'Não informado'}`,
-                category: 'CRM',
-                date: new Date().toISOString(),
-                read: false,
-                action: { type: 'crm', id: c.id }
-            });
-        });
-
-        // 7. Saldo Baixo em Contas (AVISO)
-        appData.bankAccounts.forEach(b => {
-            const saldo = calcularSaldoConta(b.id);
-            if (saldo < 1000 && saldo >= 0) {
-                notifications.push({
-                    id: 'n_saldo_' + b.id,
-                    type: 'AVISO',
-                    icon: 'fa-wallet',
-                    color: 'yellow',
-                    title: 'Saldo Baixo',
-                    message: `${b.nome} está com saldo de ${formatCurrency(saldo)}`,
-                    category: 'Contas Bancárias',
-                    date: new Date().toISOString(),
-                    read: false,
-                    action: { type: 'contas', id: b.id }
-                });
-            } else if (saldo < 0) {
-                notifications.push({
-                    id: 'n_saldo_neg_' + b.id,
-                    type: 'URGENTE',
-                    icon: 'fa-exclamation-triangle',
-                    color: 'red',
-                    title: 'Saldo Negativo!',
-                    message: `${b.nome} está com saldo negativo de ${formatCurrency(saldo)}`,
-                    category: 'Contas Bancárias',
-                    date: new Date().toISOString(),
-                    read: false,
-                    action: { type: 'contas', id: b.id }
-                });
-            }
-        });
-
-        // Sort by urgency: URGENTE > AVISO > SUCESSO > INFO
         const urgencyOrder = { 'URGENTE': 0, 'AVISO': 1, 'SUCESSO': 2, 'INFO': 3 };
         notifications.sort((a, b) => urgencyOrder[a.type] - urgencyOrder[b.type]);
-
-        return notifications;
+        return notifications.slice(0, 15); // Limita a 15 notificações
     }
 
     function updateNotificationBadge() {
@@ -393,101 +345,57 @@
     function toggleNotifications() {
         const dropdown = document.getElementById('notification-dropdown');
         dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-            renderNotifications();
-        }
+        if (!dropdown.classList.contains('hidden')) renderNotifications();
     }
 
     function renderNotifications() {
         const notifications = generateNotifications();
         const list = document.getElementById('notification-list');
-        
         if (notifications.length === 0) {
-            list.innerHTML = `
-                <div class="p-8 text-center">
-                    <i class="fas fa-bell-slash text-4xl text-slate-300 mb-3"></i>
-                    <p class="text-slate-500">Nenhuma notificação no momento</p>
-                </div>
-            `;
+            list.innerHTML = `<div class="p-8 text-center"><i class="fas fa-bell-slash text-4xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma notificação</p></div>`;
             return;
         }
-
         list.innerHTML = notifications.map(n => {
-            const colorClasses = {
-                'red': 'bg-red-100 text-red-600',
-                'yellow': 'bg-yellow-100 text-yellow-600',
-                'green': 'bg-green-100 text-green-600',
-                'blue': 'bg-blue-100 text-blue-600',
-                'purple': 'bg-purple-100 text-purple-600'
-            };
+            const colorClasses = { 'red': 'bg-red-100 text-red-600', 'yellow': 'bg-yellow-100 text-yellow-600', 'green': 'bg-green-100 text-green-600', 'blue': 'bg-blue-100 text-blue-600', 'purple': 'bg-purple-100 text-purple-600' };
             const typeLabels = { 'URGENTE': 'Urgente', 'AVISO': 'Aviso', 'SUCESSO': 'Sucesso', 'INFO': 'Info' };
-            
-            return `
-                <div class="notification-item p-4 border-b border-slate-100 ${n.read ? 'read' : 'unread'} cursor-pointer" onclick="handleNotificationClick('${n.action.type}', '${n.action.id}', '${n.id}')">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0 w-10 h-10 rounded-full ${colorClasses[n.color]} flex items-center justify-center">
-                            <i class="fas ${n.icon}"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-start">
-                                <p class="text-sm font-semibold text-slate-800">${n.title}</p>
-                                <span class="tag tag-${n.color} text-[10px]">${typeLabels[n.type]}</span>
-                            </div>
-                            <p class="text-xs text-slate-600 mt-1">${n.message}</p>
-                            <p class="text-[10px] text-slate-400 mt-1">${n.category}</p>
-                        </div>
+            return `<div class="notification-item p-4 border-b border-slate-100 ${n.read ? 'read' : 'unread'} cursor-pointer" onclick="handleNotificationClick('${n.action.type}', '${n.action.id}', '${n.id}')">
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full ${colorClasses[n.color]} flex items-center justify-center"><i class="fas ${n.icon}"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start"><p class="text-sm font-semibold text-slate-800">${n.title}</p><span class="tag tag-${n.color} text-[10px]">${typeLabels[n.type]}</span></div>
+                        <p class="text-xs text-slate-600 mt-1">${n.message}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">${n.category}</p>
                     </div>
                 </div>
-            `;
+            </div>`;
         }).join('');
     }
 
     function handleNotificationClick(pageType, id, notificationId) {
         const notifications = generateNotifications();
         const notif = notifications.find(n => n.id === notificationId);
-        if (notif) {
-            notif.read = true;
-        }
+        if (notif) notif.read = true;
         switchPage(pageType, document.querySelector(`[onclick="switchPage('${pageType}', this)"]`));
         document.getElementById('notification-dropdown').classList.add('hidden');
         updateNotificationBadge();
     }
 
-    function markAllAsRead() {
-        alert('Todas as notificações marcadas como lidas!');
-        updateNotificationBadge();
-        renderNotifications();
-    }
-
-    function clearAllNotifications() {
-        if (confirm('Deseja limpar todas as notificações?')) {
-            document.getElementById('notification-dropdown').classList.add('hidden');
-            updateNotificationBadge();
-        }
-    }
+    function markAllAsRead() { alert('Todas as notificações marcadas como lidas!'); updateNotificationBadge(); renderNotifications(); }
+    function clearAllNotifications() { if (confirm('Deseja limpar todas as notificações?')) { document.getElementById('notification-dropdown').classList.add('hidden'); updateNotificationBadge(); } }
 
     document.addEventListener('click', (e) => {
         const dropdown = document.getElementById('notification-dropdown');
         const bell = e.target.closest('button[onclick="toggleNotifications()"]');
-        if (!bell && !dropdown.contains(e.target)) {
-            dropdown.classList.add('hidden');
-        }
+        if (!bell && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
     });
 
     // ==========================================
-    // NAVIGATION
+    // NAVEGAÇÃO
     // ==========================================
     function switchPage(pageId, element) {
         document.querySelectorAll('.sidebar-link').forEach(el => { el.classList.remove('active'); el.classList.add('text-slate-300'); });
         if (element) { element.classList.add('active'); element.classList.remove('text-slate-300'); }
-        const titles = { 
-            'dashboard': 'Dashboard Executivo', 
-            'crm': 'Gestão Comercial (CRM)', 
-            'financeiro': 'Controle Financeiro', 
-            'contas': 'Contas Bancárias',
-            'parcelamentos': 'Parcelamentos Longos', 
-            'config': 'Configurações do Sistema' 
-        };
+        const titles = { 'dashboard': 'Dashboard Executivo', 'crm': 'Gestão Comercial (CRM)', 'financeiro': 'Controle Financeiro', 'contas': 'Contas Bancárias', 'parcelamentos': 'Parcelamentos Longos', 'config': 'Configurações do Sistema' };
         document.getElementById('page-title').innerText = titles[pageId];
         renderPage(pageId);
     }
@@ -532,28 +440,6 @@
                     <canvas id="contractStatusChart" height="200"></canvas>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 fade-in">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Próximos Vencimentos</h3>
-                    <div class="space-y-2">
-                        ${transactions.filter(t => t.status === 'PENDENTE').slice(0, 4).map(t => `
-                            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                <div><p class="font-medium text-slate-700 text-sm">${t.desc}</p><p class="text-xs text-slate-500">${formatDate(t.date)}</p></div>
-                                <span class="font-bold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(t.value)}</span>
-                            </div>
-                        `).join('') || '<p class="text-slate-400 text-sm p-3">Nenhum vencimento pendente.</p>'}
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Resumo da Carteira</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Contratos Ativos</span><span class="font-bold text-slate-800">${ativos.length}</span></div>
-                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Em Negociação</span><span class="font-bold text-slate-800">${contracts.filter(x => ['REUNIAO','ENVIADA','AGUARDANDO','EM_ELABORACAO'].includes(x.status)).length}</span></div>
-                        <div class="flex justify-between items-center pb-2 border-b border-slate-100"><span class="text-slate-600">Perdidas</span><span class="font-bold text-slate-800">${contracts.filter(x => x.status === 'PERDIDA').length}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-600">Ticket Médio Ativo</span><span class="font-bold text-primary-600">${ativos.length > 0 ? formatCurrency(valorContratado / ativos.length) : 'R$ 0,00'}</span></div>
-                    </div>
-                </div>
-            </div>
         `;
         setTimeout(renderCharts, 100);
     }
@@ -569,34 +455,14 @@
     function renderCharts() {
         const ctx1 = document.getElementById('cashFlowChart');
         if (ctx1) {
-            new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['Receitas', 'Despesas', 'Lucro'],
-                    datasets: [{
-                        label: 'Valores (R$)',
-                        data: [
-                            appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0),
-                            appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0),
-                            appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)
-                        ],
-                        backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
-                        borderRadius: 8, barThickness: 40
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
-            });
+            new Chart(ctx1, { type: 'bar', data: { labels: ['Receitas', 'Despesas', 'Lucro'], datasets: [{ label: 'Valores (R$)', data: [appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0), appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0), appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)], backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'], borderRadius: 8, barThickness: 40 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } } });
         }
         const ctx2 = document.getElementById('contractStatusChart');
         if (ctx2) {
             const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA', 'AGUARDANDO', 'EM_ELABORACAO', 'ENCERRADO'];
             const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#64748b', '#06b6d4', '#94a3b8'];
             const data = statuses.map(s => appData.contracts.filter(c => c.status === s).length);
-            new Chart(ctx2, {
-                type: 'doughnut',
-                data: { labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas', 'Aguardando', 'Em Elaboração', 'Encerrados'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } } }
-            });
+            new Chart(ctx2, { type: 'doughnut', data: { labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas', 'Aguardando', 'Em Elaboração', 'Encerrados'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } } } });
         }
     }
 
@@ -604,7 +470,6 @@
     // CRM
     // ==========================================
     function renderCRM(c) {
-        // ADICIONADO: Coluna EM_ELABORACAO
         const columns = [
             { id: 'AGUARDANDO', title: 'Aguardando Retorno', color: 'gray' },
             { id: 'EM_ELABORACAO', title: 'Em Elaboração', color: 'cyan' },
@@ -615,26 +480,17 @@
             { id: 'PERDIDA', title: 'Perdidas', color: 'red' },
             { id: 'ENCERRADO', title: 'Encerrados', color: 'slate' }
         ];
-
         c.innerHTML = `
             <div class="flex justify-between items-center mb-5 fade-in">
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm text-slate-500">Total de Contratos:</span>
-                    <span class="font-bold text-slate-800">${appData.contracts.length}</span>
-                </div>
-                <button onclick="openContractModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
-                    <i class="fas fa-plus mr-2"></i> Novo Contrato
-                </button>
+                <div class="flex items-center space-x-2"><span class="text-sm text-slate-500">Total de Contratos:</span><span class="font-bold text-slate-800">${appData.contracts.length}</span></div>
+                <button onclick="openContractModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm"><i class="fas fa-plus mr-2"></i> Novo Contrato</button>
             </div>
             <div class="flex space-x-3 overflow-x-auto pb-4 scrollbar-thin fade-in">
                 ${columns.map(col => {
                     const colContracts = appData.contracts.filter(c => c.status === col.id);
                     const totalValue = colContracts.reduce((s, c) => s + c.value, 0);
                     return `<div class="flex-shrink-0 w-72 bg-slate-100 p-3 rounded-xl">
-                        <div class="flex justify-between items-center mb-2 px-1">
-                            <h4 class="font-bold text-slate-700 text-sm">${col.title}</h4>
-                            <span class="bg-${col.color}-100 text-${col.color}-700 text-xs font-bold px-2 py-1 rounded-full">${colContracts.length}</span>
-                        </div>
+                        <div class="flex justify-between items-center mb-2 px-1"><h4 class="font-bold text-slate-700 text-sm">${col.title}</h4><span class="bg-${col.color}-100 text-${col.color}-700 text-xs font-bold px-2 py-1 rounded-full">${colContracts.length}</span></div>
                         <p class="text-xs text-slate-500 mb-3 px-1">Total: ${formatCurrency(totalValue)}</p>
                         <div class="space-y-2 min-h-[150px]">
                             ${colContracts.map(c => `
@@ -647,9 +503,7 @@
                                         ${c.origem ? `<span class="tag tag-blue text-[10px]">${c.origem}</span>` : ''}
                                     </div>
                                     ${c.status === 'PERDIDA' && c.motivoPerda ? `<div class="mt-2"><span class="tag tag-red text-[10px]"><i class="fas fa-times-circle mr-1"></i>${c.motivoPerda}</span></div>` : ''}
-                                    <div class="flex justify-end mt-2">
-                                        <button onclick="event.stopPropagation(); deleteContract('${c.id}')" class="text-slate-300 hover:text-red-500 transition text-xs"><i class="fas fa-trash-alt"></i></button>
-                                    </div>
+                                    <div class="flex justify-end mt-2"><button onclick="event.stopPropagation(); deleteContract('${c.id}')" class="text-slate-300 hover:text-red-500 transition text-xs"><i class="fas fa-trash-alt"></i></button></div>
                                 </div>
                             `).join('')}
                         </div>
@@ -660,106 +514,7 @@
     }
 
     // ==========================================
-    // CONTAS BANCÁRIAS
-    // ==========================================
-    function renderContas(c) {
-        const contas = appData.bankAccounts;
-        const saldoTotal = contas.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
-        const contasPF = contas.filter(b => b.tipoPessoa === 'PF');
-        const contasPJ = contas.filter(b => b.tipoPessoa === 'PJ');
-        const saldoPF = contasPF.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
-        const saldoPJ = contasPJ.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
-
-        c.innerHTML = `
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-3 fade-in">
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-                        <span class="text-xs text-slate-500 block">Saldo Total Geral</span>
-                        <span class="font-bold text-lg ${saldoTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(saldoTotal)}</span>
-                    </div>
-                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-                        <span class="text-xs text-slate-500 block">Saldo PF (Pessoa Física)</span>
-                        <span class="font-bold text-lg text-purple-600">${formatCurrency(saldoPF)}</span>
-                    </div>
-                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-                        <span class="text-xs text-slate-500 block">Saldo PJ (Pessoa Jurídica)</span>
-                        <span class="font-bold text-lg text-blue-600">${formatCurrency(saldoPJ)}</span>
-                    </div>
-                </div>
-                <button onclick="openBankAccountModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
-                    <i class="fas fa-plus mr-2"></i> Nova Conta Bancária
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
-                ${contas.map(conta => {
-                    const saldo = calcularSaldoConta(conta.id);
-                    const transacoesConta = appData.transactions.filter(t => t.contaId === conta.id);
-                    const receitasConta = transacoesConta.filter(t => t.type === 'RECEITA' && t.status === 'PAGO').reduce((s, t) => s + t.value, 0);
-                    const despesasConta = transacoesConta.filter(t => t.type === 'DESPESA' && t.status === 'PAGO').reduce((s, t) => s + t.value, 0);
-                    return `
-                        <div class="bank-card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div class="p-4 text-white" style="background: linear-gradient(135deg, ${conta.cor} 0%, ${conta.cor}dd 100%);">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas ${conta.icone} text-2xl"></i>
-                                        <div>
-                                            <h4 class="font-bold text-lg">${conta.nome}</h4>
-                                            <p class="text-xs opacity-90">${conta.tipo} • ${conta.tipoPessoa}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex space-x-1">
-                                        <button onclick="openBankAccountModal('${conta.id}')" class="p-1.5 bg-white/20 rounded hover:bg-white/30 transition"><i class="fas fa-edit text-xs"></i></button>
-                                        <button onclick="deleteBankAccount('${conta.id}')" class="p-1.5 bg-white/20 rounded hover:bg-white/30 transition"><i class="fas fa-trash-alt text-xs"></i></button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p class="text-xs opacity-80 mb-1">Saldo Atual</p>
-                                    <p class="text-2xl font-bold">${formatCurrency(saldo)}</p>
-                                </div>
-                            </div>
-                            <div class="p-4 bg-slate-50">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs text-slate-500">Saldo Inicial</span>
-                                    <span class="text-sm font-medium text-slate-700">${formatCurrency(conta.saldoInicial)}</span>
-                                </div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs text-slate-500">Receitas (Pagas)</span>
-                                    <span class="text-sm font-medium text-emerald-600">+ ${formatCurrency(receitasConta)}</span>
-                                </div>
-                                <div class="flex justify-between items-center mb-3">
-                                    <span class="text-xs text-slate-500">Despesas (Pagas)</span>
-                                    <span class="text-sm font-medium text-red-600">- ${formatCurrency(despesasConta)}</span>
-                                </div>
-                                <div class="pt-2 border-t border-slate-200">
-                                    <p class="text-xs text-slate-400"><i class="fas fa-exchange-alt mr-1"></i>${transacoesConta.length} transações vinculadas</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-
-            ${contas.length === 0 ? `
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center fade-in">
-                    <i class="fas fa-university text-6xl text-slate-300 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Nenhuma conta bancária cadastrada</h3>
-                    <p class="text-slate-500 mb-4">Comece adicionando suas contas bancárias para controlar melhor seu fluxo de caixa.</p>
-                    <button onclick="openBankAccountModal()" class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
-                        <i class="fas fa-plus mr-2"></i>Adicionar Primeira Conta
-                    </button>
-                </div>
-            ` : ''}
-
-            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 fade-in">
-                <h4 class="font-semibold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Como funciona o saldo?</h4>
-                <p class="text-sm text-blue-700">O saldo de cada conta é calculado automaticamente: <strong>Saldo Inicial + Receitas Pagas - Despesas Pagas</strong>. Transações com status "Pendente" ou "Vencido" não afetam o saldo até serem marcadas como "Pago".</p>
-            </div>
-        `;
-    }
-
-    // ==========================================
-    // FINANCEIRO
+    // FINANCEIRO (COMPLETO)
     // ==========================================
     function renderFinanceiro(c) {
         const transactions = appData.transactions;
@@ -847,12 +602,7 @@
                                     <td class="px-4 py-3 text-sm text-slate-500">${formatDate(t.date)}</td>
                                     <td class="px-4 py-3 text-sm font-semibold ${t.type === 'RECEITA' ? 'text-emerald-600' : 'text-red-600'}">${t.type === 'DESPESA' ? '- ' : ''}${formatCurrency(t.value)}</td>
                                     <td class="px-4 py-3">
-                                        ${conta ? `
-                                            <div class="flex items-center space-x-1">
-                                                <i class="fas ${conta.icone} text-xs" style="color: ${conta.cor}"></i>
-                                                <span class="text-xs font-medium text-slate-700">${conta.nome}</span>
-                                            </div>
-                                        ` : '<span class="text-xs text-slate-400">Não vinculada</span>'}
+                                        ${conta ? `<div class="flex items-center space-x-1"><i class="fas ${conta.icone} text-xs" style="color: ${conta.cor}"></i><span class="text-xs font-medium text-slate-700">${conta.nome}</span></div>` : '<span class="text-xs text-slate-400">Não vinculada</span>'}
                                     </td>
                                     <td class="px-4 py-3"><span class="tag ${formaColors[t.formaPagamento] || 'tag-gray'}">${t.formaPagamento || '-'}</span></td>
                                     <td class="px-4 py-3"><span class="tag ${t.tipoPessoa === 'PJ' ? 'tag-blue' : 'tag-purple'}">${t.tipoPessoa || '-'}</span></td>
@@ -871,7 +621,91 @@
     }
 
     // ==========================================
-    // PARCELAMENTOS
+    // CONTAS BANCÁRIAS (COMPLETO)
+    // ==========================================
+    function renderContas(c) {
+        const contas = appData.bankAccounts;
+        const saldoTotal = contas.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
+        const contasPF = contas.filter(b => b.tipoPessoa === 'PF');
+        const contasPJ = contas.filter(b => b.tipoPessoa === 'PJ');
+        const saldoPF = contasPF.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
+        const saldoPJ = contasPJ.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
+
+        c.innerHTML = `
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-3 fade-in">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo Total Geral</span>
+                        <span class="font-bold text-lg ${saldoTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(saldoTotal)}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo PF (Pessoa Física)</span>
+                        <span class="font-bold text-lg text-purple-600">${formatCurrency(saldoPF)}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Saldo PJ (Pessoa Jurídica)</span>
+                        <span class="font-bold text-lg text-blue-600">${formatCurrency(saldoPJ)}</span>
+                    </div>
+                </div>
+                <button onclick="openBankAccountModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
+                    <i class="fas fa-plus mr-2"></i> Nova Conta Bancária
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
+                ${contas.map(conta => {
+                    const saldo = calcularSaldoConta(conta.id);
+                    const transacoesConta = appData.transactions.filter(t => t.contaId === conta.id);
+                    const receitasConta = transacoesConta.filter(t => t.type === 'RECEITA' && t.status === 'PAGO').reduce((s, t) => s + t.value, 0);
+                    const despesasConta = transacoesConta.filter(t => t.type === 'DESPESA' && t.status === 'PAGO').reduce((s, t) => s + t.value, 0);
+                    return `
+                        <div class="bank-card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-4 text-white" style="background: linear-gradient(135deg, ${conta.cor} 0%, ${conta.cor}dd 100%);">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas ${conta.icone} text-2xl"></i>
+                                        <div>
+                                            <h4 class="font-bold text-lg">${conta.nome}</h4>
+                                            <p class="text-xs opacity-90">${conta.tipo} • ${conta.tipoPessoa}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button onclick="openBankAccountModal('${conta.id}')" class="p-1.5 bg-white/20 rounded hover:bg-white/30 transition"><i class="fas fa-edit text-xs"></i></button>
+                                        <button onclick="deleteBankAccount('${conta.id}')" class="p-1.5 bg-white/20 rounded hover:bg-white/30 transition"><i class="fas fa-trash-alt text-xs"></i></button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-xs opacity-80 mb-1">Saldo Atual</p>
+                                    <p class="text-2xl font-bold">${formatCurrency(saldo)}</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-slate-50">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs text-slate-500">Saldo Inicial</span>
+                                    <span class="text-sm font-medium text-slate-700">${formatCurrency(conta.saldoInicial)}</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs text-slate-500">Receitas (Pagas)</span>
+                                    <span class="text-sm font-medium text-emerald-600">+ ${formatCurrency(receitasConta)}</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-xs text-slate-500">Despesas (Pagas)</span>
+                                    <span class="text-sm font-medium text-red-600">- ${formatCurrency(despesasConta)}</span>
+                                </div>
+                                <div class="pt-2 border-t border-slate-200">
+                                    <p class="text-xs text-slate-400"><i class="fas fa-exchange-alt mr-1"></i>${transacoesConta.length} transações vinculadas</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            ${contas.length === 0 ? `<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center fade-in"><i class="fas fa-university text-6xl text-slate-300 mb-4"></i><h3 class="text-xl font-semibold text-slate-700 mb-2">Nenhuma conta bancária cadastrada</h3><button onclick="openBankAccountModal()" class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition mt-4"><i class="fas fa-plus mr-2"></i>Adicionar Primeira Conta</button></div>` : ''}
+        `;
+    }
+
+    // ==========================================
+    // PARCELAMENTOS (COMPLETO)
     // ==========================================
     function renderParcelamentos(c) {
         const parcelamentos = appData.parcelamentos;
@@ -926,12 +760,7 @@
                                     <td class="px-4 py-3 text-sm font-semibold text-slate-700">${formatCurrency(valorParcela)}</td>
                                     <td class="px-4 py-3"><span class="tag tag-blue">${p.formaPagamento}</span></td>
                                     <td class="px-4 py-3">
-                                        ${conta ? `
-                                            <div class="flex items-center space-x-1">
-                                                <i class="fas ${conta.icone} text-xs" style="color: ${conta.cor}"></i>
-                                                <span class="text-xs font-medium">${conta.nome}</span>
-                                            </div>
-                                        ` : '<span class="text-xs text-slate-400">-</span>'}
+                                        ${conta ? `<div class="flex items-center space-x-1"><i class="fas ${conta.icone} text-xs" style="color: ${conta.cor}"></i><span class="text-xs font-medium">${conta.nome}</span></div>` : '<span class="text-xs text-slate-400">-</span>'}
                                     </td>
                                     <td class="px-4 py-3"><span class="tag ${p.tipoPessoa === 'PJ' ? 'tag-blue' : 'tag-purple'}">${p.tipoPessoa}</span></td>
                                     <td class="px-4 py-3 text-sm text-slate-500">${formatDate(p.dataInicio)}</td>
@@ -946,16 +775,11 @@
                     </table>
                 </div>
             </div>
-
-            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 fade-in">
-                <h4 class="font-semibold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Como funciona o parcelamento?</h4>
-                <p class="text-sm text-blue-700">Ao criar um parcelamento (ex: curso em 12x no crédito), o sistema gera automaticamente as parcelas mensais no módulo Financeiro. Você pode filtrar por mês para ver quais parcelas vencem em cada período. Ideal para controlar despesas de <strong>Pessoa Física</strong> (cartão pessoal) e <strong>Pessoa Jurídica</strong> (cartão empresarial).</p>
-            </div>
         `;
     }
 
     // ==========================================
-    // CONFIGURAÇÕES
+    // CONFIGURAÇÕES (COMPLETO)
     // ==========================================
     function renderConfig(c) {
         c.innerHTML = `
@@ -968,10 +792,7 @@
                     <div class="space-y-2">
                         ${appData.categories.receitas.map(cat => `
                             <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                                <div>
-                                    <p class="font-medium text-slate-800 text-sm">${cat.nome}</p>
-                                    <p class="text-xs text-slate-500">${cat.tipo || 'Geral'}</p>
-                                </div>
+                                <div><p class="font-medium text-slate-800 text-sm">${cat.nome}</p><p class="text-xs text-slate-500">${cat.tipo || 'Geral'}</p></div>
                                 <div class="flex items-center gap-2">
                                     <span class="tag tag-green">Receita</span>
                                     <button onclick="deleteCategory('receita', '${cat.id}')" class="text-slate-400 hover:text-red-500 transition"><i class="fas fa-trash-alt text-xs"></i></button>
@@ -988,10 +809,7 @@
                     <div class="space-y-2">
                         ${appData.categories.despesas.map(cat => `
                             <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
-                                <div>
-                                    <p class="font-medium text-slate-800 text-sm">${cat.nome}</p>
-                                    <p class="text-xs text-slate-500">${cat.tipo || 'Geral'}</p>
-                                </div>
+                                <div><p class="font-medium text-slate-800 text-sm">${cat.nome}</p><p class="text-xs text-slate-500">${cat.tipo || 'Geral'}</p></div>
                                 <div class="flex items-center gap-2">
                                     <span class="tag tag-red">Despesa</span>
                                     <button onclick="deleteCategory('despesa', '${cat.id}')" class="text-slate-400 hover:text-red-500 transition"><i class="fas fa-trash-alt text-xs"></i></button>
@@ -1001,112 +819,23 @@
                     </div>
                 </div>
             </div>
-
             <div class="mt-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200 fade-in">
                 <h3 class="text-lg font-semibold text-slate-800 mb-4"><i class="fas fa-cog text-slate-500 mr-2"></i>Resumo do Sistema</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="p-4 bg-slate-50 rounded-lg">
-                        <p class="text-xs text-slate-500 uppercase mb-1">Receitas</p>
-                        <p class="text-2xl font-bold text-emerald-600">${appData.categories.receitas.length}</p>
-                        <p class="text-xs text-slate-400">categorias</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-lg">
-                        <p class="text-xs text-slate-500 uppercase mb-1">Despesas</p>
-                        <p class="text-2xl font-bold text-red-600">${appData.categories.despesas.length}</p>
-                        <p class="text-xs text-slate-400">categorias</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-lg">
-                        <p class="text-xs text-slate-500 uppercase mb-1">Contas Bancárias</p>
-                        <p class="text-2xl font-bold text-primary-600">${appData.bankAccounts.length}</p>
-                        <p class="text-xs text-slate-400">cadastradas</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-lg">
-                        <p class="text-xs text-slate-500 uppercase mb-1">Formas de Pagamento</p>
-                        <p class="text-2xl font-bold text-purple-600">${FORMAS_PAGAMENTO.length}</p>
-                        <p class="text-xs text-slate-400">opções</p>
-                    </div>
+                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Receitas</p><p class="text-2xl font-bold text-emerald-600">${appData.categories.receitas.length}</p><p class="text-xs text-slate-400">categorias</p></div>
+                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Despesas</p><p class="text-2xl font-bold text-red-600">${appData.categories.despesas.length}</p><p class="text-xs text-slate-400">categorias</p></div>
+                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Contas Bancárias</p><p class="text-2xl font-bold text-primary-600">${appData.bankAccounts.length}</p><p class="text-xs text-slate-400">cadastradas</p></div>
+                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Formas de Pagamento</p><p class="text-2xl font-bold text-purple-600">${FORMAS_PAGAMENTO.length}</p><p class="text-xs text-slate-400">opções</p></div>
                 </div>
-            </div>
-
-            <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4 fade-in">
-                <h4 class="font-semibold text-yellow-800 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Atenção</h4>
-                <p class="text-sm text-yellow-700">Ao excluir uma categoria, as transações vinculadas a ela permanecerão no sistema, mas aparecerão como "N/A". Recomendamos criar novas categorias em vez de excluir as existentes.</p>
             </div>
         `;
     }
 
     // ==========================================
-    // MODALS
+    // MODALS E AÇÕES
     // ==========================================
     function openModal() { document.getElementById('modal-overlay').classList.remove('hidden'); }
     function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-
-    function openBankAccountModal(id = null) {
-        const account = id ? appData.bankAccounts.find(b => b.id === id) : null;
-        document.getElementById('modal-content').innerHTML = `
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-xl font-bold text-slate-800">${account ? 'Editar' : 'Nova'} Conta Bancária</h3>
-                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                </div>
-                <form id="bankForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome da Conta *</label>
-                        <input type="text" id="b_nome" value="${account ? account.nome : ''}" placeholder="Ex: Nubank PJ, Itaú PF" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Conta *</label>
-                            <select id="b_tipo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${TIPOS_CONTA.map(t => `<option value="${t}" ${account && account.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Pessoa *</label>
-                            <select id="b_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${TIPOS_PESSOA.map(t => `<option value="${t}" ${account && account.tipoPessoa === t ? 'selected' : ''}>${t} - ${t === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Saldo Inicial (R$)</label>
-                        <input type="number" step="0.01" id="b_saldo" value="${account ? account.saldoInicial : 0}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                        <p class="text-xs text-slate-400 mt-1">Saldo atual da conta antes de começar a usar o sistema</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Cor da Conta</label>
-                            <input type="color" id="b_cor" value="${account ? account.cor : '#2563eb'}" class="w-full h-10 border border-slate-300 rounded-lg cursor-pointer">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Ícone</label>
-                            <select id="b_icone" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${ICONES_BANCOS.map(i => `<option value="${i}" ${account && account.icone === i ? 'selected' : ''}>${i.replace('fa-', '')}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Conta Bancária</button>
-                </form>
-            </div>
-        `;
-        openModal();
-
-        document.getElementById('bankForm').onsubmit = (e) => {
-            e.preventDefault();
-            const data = {
-                nome: document.getElementById('b_nome').value,
-                tipo: document.getElementById('b_tipo').value,
-                tipoPessoa: document.getElementById('b_tipoPessoa').value,
-                saldoInicial: parseFloat(document.getElementById('b_saldo').value) || 0,
-                cor: document.getElementById('b_cor').value,
-                icone: document.getElementById('b_icone').value
-            };
-
-            if (account) { Object.assign(account, data); }
-            else { appData.bankAccounts.push({ id: 'b' + Date.now(), ...data }); }
-            saveData(); closeModal(); renderPage('contas');
-        };
-    }
 
     function openContractModal(id = null) {
         const contract = id ? appData.contracts.find(c => c.id === id) : null;
@@ -1117,171 +846,70 @@
                     <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
                 </div>
                 <form id="contractForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente *</label>
-                        <input type="text" id="c_client" value="${contract ? contract.client : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                    </div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente *</label><input type="text" id="c_client" value="${contract ? contract.client : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$) *</label>
-                            <input type="number" step="0.01" id="c_value" value="${contract ? contract.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Status *</label>
-                            <select id="c_status" onchange="toggleMotivoPerda()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${STATUS_CONTRATO.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s.replace('_', ' ')}</option>`).join('')}
-                            </select>
-                        </div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$) *</label><input type="number" step="0.01" id="c_value" value="${contract ? contract.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Status *</label><select id="c_status" onchange="toggleMotivoPerda()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${STATUS_CONTRATO.map(s => `<option value="${s}" ${contract && contract.status === s ? 'selected' : ''}>${s.replace('_', ' ')}</option>`).join('')}</select></div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Responsável *</label>
-                        <input type="text" id="c_responsible" value="${contract ? contract.responsible : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                    </div>
-                    
-                    <!-- ADICIONADO: Campo de Descrição dos Serviços -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição dos Serviços (Opcional)</label>
-                        <textarea id="c_descricao" rows="3" placeholder="Descreva os serviços a serem realizados..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-none">${contract ? (contract.descricao || '') : ''}</textarea>
-                        <p class="text-xs text-slate-400 mt-1">Informe os principais serviços ou escopo do contrato</p>
-                    </div>
-
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Responsável *</label><input type="text" id="c_responsible" value="${contract ? contract.responsible : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Descrição dos Serviços (Opcional)</label><textarea id="c_descricao" rows="3" placeholder="Descreva os serviços..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-none">${contract ? (contract.descricao || '') : ''}</textarea></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Origem do Cliente</label>
-                            <select id="c_origem" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                <option value="">Selecione...</option>
-                                ${ORIGENS.map(o => `<option value="${o}" ${contract && contract.origem === o ? 'selected' : ''}>${o}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div id="motivoPerdaContainer" style="display: ${contract && contract.status === 'PERDIDA' ? 'block' : 'none'};">
-                            <label class="block text-sm font-medium text-red-700 mb-1">Motivo da Perda *</label>
-                            <select id="c_motivoPerda" class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
-                                <option value="">Selecione o motivo...</option>
-                                ${MOTIVOS_PERDA.map(m => `<option value="${m}" ${contract && contract.motivoPerda === m ? 'selected' : ''}>${m}</option>`).join('')}
-                            </select>
-                        </div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Origem do Cliente</label><select id="c_origem" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"><option value="">Selecione...</option>${ORIGENS.map(o => `<option value="${o}" ${contract && contract.origem === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
+                        <div id="motivoPerdaContainer" style="display: ${contract && contract.status === 'PERDIDA' ? 'block' : 'none'};"><label class="block text-sm font-medium text-red-700 mb-1">Motivo da Perda *</label><select id="c_motivoPerda" class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"><option value="">Selecione...</option>${MOTIVOS_PERDA.map(m => `<option value="${m}" ${contract && contract.motivoPerda === m ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
                     </div>
                     <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Contrato</button>
                 </form>
             </div>
         `;
         openModal();
-
         document.getElementById('contractForm').onsubmit = (e) => {
             e.preventDefault();
             const status = document.getElementById('c_status').value;
             const motivoPerda = status === 'PERDIDA' ? document.getElementById('c_motivoPerda').value : '';
             if (status === 'PERDIDA' && !motivoPerda) { alert('Informe o motivo da perda!'); return; }
-
-            const data = {
-                client: document.getElementById('c_client').value,
-                value: parseFloat(document.getElementById('c_value').value),
-                status: status,
-                responsible: document.getElementById('c_responsible').value,
-                descricao: document.getElementById('c_descricao').value || null, // ADICIONADO
-                origem: document.getElementById('c_origem').value,
-                motivoPerda: motivoPerda
-            };
-
-            if (contract) { Object.assign(contract, data); }
-            else { appData.contracts.push({ id: 'c' + Date.now(), ...data }); }
+            const data = { client: document.getElementById('c_client').value, value: parseFloat(document.getElementById('c_value').value), status: status, responsible: document.getElementById('c_responsible').value, descricao: document.getElementById('c_descricao').value || null, origem: document.getElementById('c_origem').value, motivoPerda: motivoPerda };
+            if (contract) { Object.assign(contract, data); } else { appData.contracts.push({ id: 'c' + Date.now(), ...data }); }
             saveData(); closeModal(); renderPage('crm');
         };
     }
-
-    function toggleMotivoPerda() {
-        const status = document.getElementById('c_status').value;
-        const container = document.getElementById('motivoPerdaContainer');
-        container.style.display = status === 'PERDIDA' ? 'block' : 'none';
-    }
+    function toggleMotivoPerda() { document.getElementById('motivoPerdaContainer').style.display = document.getElementById('c_status').value === 'PERDIDA' ? 'block' : 'none'; }
+    function deleteContract(id) { if (confirm('Excluir este contrato?')) { appData.contracts = appData.contracts.filter(c => c.id !== id); saveData(); renderPage('crm'); } }
 
     function openTransactionModal(id = null) {
         const trans = id ? appData.transactions.find(t => t.id === id) : null;
-        const allCats = [
-            ...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })),
-            ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))
-        ];
-
+        const allCats = [...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })), ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))];
         document.getElementById('modal-content').innerHTML = `
             <div class="p-6">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-xl font-bold text-slate-800">${trans ? 'Editar' : 'Nova'} Transação</h3>
-                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                </div>
+                <div class="flex justify-between items-center mb-5"><h3 class="text-xl font-bold text-slate-800">${trans ? 'Editar' : 'Nova'} Transação</h3><button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button></div>
                 <form id="transForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição *</label>
-                        <input type="text" id="t_desc" value="${trans ? trans.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Descrição *</label><input type="text" id="t_desc" value="${trans ? trans.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$) *</label><input type="number" step="0.01" id="t_value" value="${trans ? trans.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Vencimento *</label><input type="date" id="t_date" value="${trans ? trans.date : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Valor (R$) *</label>
-                            <input type="number" step="0.01" id="t_value" value="${trans ? trans.value : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Vencimento *</label>
-                            <input type="date" id="t_date" value="${trans ? trans.date : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
-                            <select id="t_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${allCats.map(c => `<option value="${c.id}" ${trans && trans.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Status *</label>
-                            <select id="t_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${STATUS_TRANS.map(s => `<option value="${s}" ${trans && trans.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-                            </select>
-                        </div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label><select id="t_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${allCats.map(c => `<option value="${c.id}" ${trans && trans.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Status *</label><select id="t_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${STATUS_TRANS.map(s => `<option value="${s}" ${trans && trans.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
                     </div>
                     <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Forma de Pagamento</label>
-                            <select id="t_forma" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${FORMAS_PAGAMENTO.map(f => `<option value="${f}" ${trans && trans.formaPagamento === f ? 'selected' : ''}>${f}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo Pessoa</label>
-                            <select id="t_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${TIPOS_PESSOA.map(t => `<option value="${t}" ${trans && trans.tipoPessoa === t ? 'selected' : ''}>${t}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Nº Parcelas</label>
-                            <input type="number" id="t_parcelas" min="1" max="48" value="${trans ? trans.parcelamento : 1}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                            <p class="text-xs text-slate-400 mt-1">1 = pagamento único</p>
-                        </div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Forma de Pagamento</label><select id="t_forma" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${FORMAS_PAGAMENTO.map(f => `<option value="${f}" ${trans && trans.formaPagamento === f ? 'selected' : ''}>${f}</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Tipo Pessoa</label><select id="t_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${TIPOS_PESSOA.map(t => `<option value="${t}" ${trans && trans.tipoPessoa === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Nº Parcelas</label><input type="number" id="t_parcelas" min="1" max="48" value="${trans ? trans.parcelamento : 1}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"><p class="text-xs text-slate-400 mt-1">1 = único</p></div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Conta Bancária *</label>
-                        <select id="t_conta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                            <option value="">Selecione a conta...</option>
-                            ${appData.bankAccounts.map(b => `<option value="${b.id}" ${trans && trans.contaId === b.id ? 'selected' : ''}>${b.nome} (${b.tipoPessoa})</option>`).join('')}
-                        </select>
-                        <p class="text-xs text-slate-400 mt-1">Vincule a transação a uma conta bancária específica</p>
-                    </div>
-                    <div id="installmentPreview" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3">
-                        <p class="text-sm font-semibold text-purple-800"><i class="fas fa-info-circle mr-1"></i>Preview do Parcelamento</p>
-                        <p class="text-xs text-purple-700 mt-1" id="installmentPreviewText"></p>
-                    </div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Conta Bancária *</label><select id="t_conta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"><option value="">Selecione...</option>${appData.bankAccounts.map(b => `<option value="${b.id}" ${trans && trans.contaId === b.id ? 'selected' : ''}>${b.nome} (${b.tipoPessoa})</option>`).join('')}</select></div>
+                    <div id="installmentPreview" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3"><p class="text-sm font-semibold text-purple-800"><i class="fas fa-info-circle mr-1"></i>Preview</p><p class="text-xs text-purple-700 mt-1" id="installmentPreviewText"></p></div>
                     <button type="submit" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg hover:bg-emerald-700 transition font-medium mt-4">Salvar Transação</button>
                 </form>
             </div>
         `;
         openModal();
-
         const updatePreview = () => {
             const val = parseFloat(document.getElementById('t_value').value) || 0;
             const parc = parseInt(document.getElementById('t_parcelas').value) || 1;
             const preview = document.getElementById('installmentPreview');
-            const previewText = document.getElementById('installmentPreviewText');
             if (parc > 1 && val > 0) {
                 preview.classList.remove('hidden');
-                previewText.innerHTML = `Serão geradas <strong>${parc} parcelas</strong> de <strong>${formatCurrency(val / parc)}</strong> cada, totalizando <strong>${formatCurrency(val)}</strong>.`;
+                document.getElementById('installmentPreviewText').innerHTML = `Serão geradas <strong>${parc} parcelas</strong> de <strong>${formatCurrency(val / parc)}</strong> cada.`;
             } else { preview.classList.add('hidden'); }
         };
         document.getElementById('t_value').addEventListener('input', updatePreview);
@@ -1297,289 +925,151 @@
             const baseDate = document.getElementById('t_date').value;
             const contaId = document.getElementById('t_conta').value;
             const grupoId = 'g' + Date.now();
-
-            const data = {
-                desc: document.getElementById('t_desc').value,
-                catId: selectedCat.id,
-                type: selectedCat.type,
-                status: document.getElementById('t_status').value,
-                formaPagamento: document.getElementById('t_forma').value,
-                tipoPessoa: document.getElementById('t_tipoPessoa').value,
-                parcelamento: parcelas,
-                contaId: contaId || null,
-                grupoId: parcelas > 1 ? grupoId : null
-            };
+            const data = { desc: document.getElementById('t_desc').value, catId: selectedCat.id, type: selectedCat.type, status: document.getElementById('t_status').value, formaPagamento: document.getElementById('t_forma').value, tipoPessoa: document.getElementById('t_tipoPessoa').value, parcelamento: parcelas, contaId: contaId || null, grupoId: parcelas > 1 ? grupoId : null };
 
             if (trans) {
-                if (trans.grupoId) {
-                    appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId || t.id === trans.id);
-                }
+                if (trans.grupoId) appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId || t.id === trans.id);
                 if (parcelas > 1) {
                     for (let i = 0; i < parcelas; i++) {
-                        const d = new Date(baseDate + 'T00:00:00');
-                        d.setMonth(d.getMonth() + i);
-                        const installmentData = {
-                            ...data,
-                            id: i === 0 ? trans.id : 't' + Date.now() + '_' + i,
-                            value: valorParcela,
-                            date: d.toISOString().split('T')[0],
-                            parcelaAtual: i + 1,
-                            grupoId: grupoId
-                        };
-                        if (i === 0) { Object.assign(trans, installmentData); }
-                        else { appData.transactions.push(installmentData); }
+                        const d = new Date(baseDate + 'T00:00:00'); d.setMonth(d.getMonth() + i);
+                        const installmentData = { ...data, id: i === 0 ? trans.id : 't' + Date.now() + '_' + i, value: valorParcela, date: d.toISOString().split('T')[0], parcelaAtual: i + 1, grupoId: grupoId };
+                        if (i === 0) Object.assign(trans, installmentData); else appData.transactions.push(installmentData);
                     }
-                } else {
-                    Object.assign(trans, { ...data, value: valorTotal, date: baseDate, parcelaAtual: 1, grupoId: null });
-                }
+                } else { Object.assign(trans, { ...data, value: valorTotal, date: baseDate, parcelaAtual: 1, grupoId: null }); }
             } else {
                 for (let i = 0; i < parcelas; i++) {
-                    const d = new Date(baseDate + 'T00:00:00');
-                    d.setMonth(d.getMonth() + i);
-                    appData.transactions.push({
-                        id: 't' + Date.now() + '_' + i,
-                        desc: document.getElementById('t_desc').value,
-                        catId: selectedCat.id,
-                        type: selectedCat.type,
-                        value: valorParcela,
-                        date: d.toISOString().split('T')[0],
-                        status: document.getElementById('t_status').value,
-                        formaPagamento: document.getElementById('t_forma').value,
-                        tipoPessoa: document.getElementById('t_tipoPessoa').value,
-                        parcelamento: parcelas,
-                        parcelaAtual: i + 1,
-                        contaId: contaId || null,
-                        grupoId: parcelas > 1 ? grupoId : null
-                    });
+                    const d = new Date(baseDate + 'T00:00:00'); d.setMonth(d.getMonth() + i);
+                    appData.transactions.push({ id: 't' + Date.now() + '_' + i, desc: document.getElementById('t_desc').value, catId: selectedCat.id, type: selectedCat.type, value: valorParcela, date: d.toISOString().split('T')[0], status: document.getElementById('t_status').value, formaPagamento: document.getElementById('t_forma').value, tipoPessoa: document.getElementById('t_tipoPessoa').value, parcelamento: parcelas, parcelaAtual: i + 1, contaId: contaId || null, grupoId: parcelas > 1 ? grupoId : null });
                 }
             }
             saveData(); closeModal(); renderPage('financeiro');
         };
     }
+    function deleteTransaction(id) {
+        if (confirm('Excluir esta transação?')) {
+            const trans = appData.transactions.find(t => t.id === id);
+            if (trans && trans.grupoId) {
+                if (confirm('Esta transação faz parte de um parcelamento. Excluir TODAS as parcelas?')) appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId);
+                else appData.transactions = appData.transactions.filter(t => t.id !== id);
+            } else { appData.transactions = appData.transactions.filter(t => t.id !== id); }
+            saveData(); renderPage('financeiro');
+        }
+    }
+
+    function openBankAccountModal(id = null) {
+        const account = id ? appData.bankAccounts.find(b => b.id === id) : null;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5"><h3 class="text-xl font-bold text-slate-800">${account ? 'Editar' : 'Nova'} Conta Bancária</h3><button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button></div>
+                <form id="bankForm" class="space-y-4">
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Nome da Conta *</label><input type="text" id="b_nome" value="${account ? account.nome : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Conta *</label><select id="b_tipo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${TIPOS_CONTA.map(t => `<option value="${t}" ${account && account.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Pessoa *</label><select id="b_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${TIPOS_PESSOA.map(t => `<option value="${t}" ${account && account.tipoPessoa === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Saldo Inicial (R$)</label><input type="number" step="0.01" id="b_saldo" value="${account ? account.saldoInicial : 0}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Cor da Conta</label><input type="color" id="b_cor" value="${account ? account.cor : '#2563eb'}" class="w-full h-10 border border-slate-300 rounded-lg cursor-pointer"></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Ícone</label><select id="b_icone" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${ICONES_BANCOS.map(i => `<option value="${i}" ${account && account.icone === i ? 'selected' : ''}>${i.replace('fa-', '')}</option>`).join('')}</select></div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Conta</button>
+                </form>
+            </div>
+        `;
+        openModal();
+        document.getElementById('bankForm').onsubmit = (e) => {
+            e.preventDefault();
+            const data = { nome: document.getElementById('b_nome').value, tipo: document.getElementById('b_tipo').value, tipoPessoa: document.getElementById('b_tipoPessoa').value, saldoInicial: parseFloat(document.getElementById('b_saldo').value) || 0, cor: document.getElementById('b_cor').value, icone: document.getElementById('b_icone').value };
+            if (account) Object.assign(account, data); else appData.bankAccounts.push({ id: 'b' + Date.now(), ...data });
+            saveData(); closeModal(); renderPage('contas');
+        };
+    }
+    function deleteBankAccount(id) {
+        if (confirm('Excluir esta conta bancária? As transações vinculadas ficarão sem conta.')) {
+            appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id);
+            appData.transactions.forEach(t => { if (t.contaId === id) t.contaId = null; });
+            saveData(); renderPage('contas');
+        }
+    }
 
     function openInstallmentModal(id = null) {
         const inst = id ? appData.parcelamentos.find(p => p.id === id) : null;
-        const allCats = [
-            ...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })),
-            ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))
-        ];
-
+        const allCats = [...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })), ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))];
         document.getElementById('modal-content').innerHTML = `
             <div class="p-6">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-xl font-bold text-slate-800">${inst ? 'Editar' : 'Novo'} Parcelamento</h3>
-                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                </div>
+                <div class="flex justify-between items-center mb-5"><h3 class="text-xl font-bold text-slate-800">${inst ? 'Editar' : 'Novo'} Parcelamento</h3><button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button></div>
                 <form id="instForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição *</label>
-                        <input type="text" id="i_desc" value="${inst ? inst.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Descrição *</label><input type="text" id="i_desc" value="${inst ? inst.desc : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Valor Total (R$) *</label><input type="number" step="0.01" id="i_value" value="${inst ? inst.valueTotal : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Nº de Parcelas *</label><input type="number" id="i_parcelas" min="2" max="48" value="${inst ? inst.parcelas : 12}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Valor Total (R$) *</label>
-                            <input type="number" step="0.01" id="i_value" value="${inst ? inst.valueTotal : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Nº de Parcelas *</label>
-                            <input type="number" id="i_parcelas" min="2" max="48" value="${inst ? inst.parcelas : 12}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                        </div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label><select id="i_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${allCats.map(c => `<option value="${c.id}" ${inst && inst.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Data da 1ª Parcela *</label><input type="date" id="i_dataInicio" value="${inst ? inst.dataInicio : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
-                            <select id="i_cat" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${allCats.map(c => `<option value="${c.id}" ${inst && inst.catId === c.id ? 'selected' : ''}>${c.nome} (${c.type})</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Data da 1ª Parcela *</label>
-                            <input type="date" id="i_dataInicio" value="${inst ? inst.dataInicio : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                        </div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Forma de Pagamento</label><select id="i_forma" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${FORMAS_PAGAMENTO.map(f => `<option value="${f}" ${inst && inst.formaPagamento === f ? 'selected' : ''}>${f}</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Tipo Pessoa</label><select id="i_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${TIPOS_PESSOA.map(t => `<option value="${t}" ${inst && inst.tipoPessoa === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Forma de Pagamento</label>
-                            <select id="i_forma" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${FORMAS_PAGAMENTO.map(f => `<option value="${f}" ${inst && inst.formaPagamento === f ? 'selected' : ''}>${f}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo Pessoa</label>
-                            <select id="i_tipoPessoa" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                                ${TIPOS_PESSOA.map(t => `<option value="${t}" ${inst && inst.tipoPessoa === t ? 'selected' : ''}>${t} - ${t === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Conta Bancária *</label>
-                        <select id="i_conta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                            <option value="">Selecione a conta...</option>
-                            ${appData.bankAccounts.map(b => `<option value="${b.id}" ${inst && inst.contaId === b.id ? 'selected' : ''}>${b.nome} (${b.tipoPessoa})</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                        <p class="text-sm font-semibold text-purple-800"><i class="fas fa-info-circle mr-1"></i>Resumo</p>
-                        <p class="text-xs text-purple-700 mt-1">Ao salvar, o sistema gerará automaticamente as parcelas mensais no módulo Financeiro.</p>
-                    </div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Conta Bancária *</label><select id="i_conta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"><option value="">Selecione...</option>${appData.bankAccounts.map(b => `<option value="${b.id}" ${inst && inst.contaId === b.id ? 'selected' : ''}>${b.nome} (${b.tipoPessoa})</option>`).join('')}</select></div>
                     <button type="submit" class="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 transition font-medium mt-4">Salvar Parcelamento</button>
                 </form>
             </div>
         `;
         openModal();
-
         document.getElementById('instForm').onsubmit = (e) => {
             e.preventDefault();
             const selectedCat = allCats.find(c => c.id === document.getElementById('i_cat').value);
-            const data = {
-                desc: document.getElementById('i_desc').value,
-                catId: selectedCat.id,
-                type: selectedCat.type,
-                valueTotal: parseFloat(document.getElementById('i_value').value),
-                parcelas: parseInt(document.getElementById('i_parcelas').value),
-                dataInicio: document.getElementById('i_dataInicio').value,
-                formaPagamento: document.getElementById('i_forma').value,
-                tipoPessoa: document.getElementById('i_tipoPessoa').value,
-                contaId: document.getElementById('i_conta').value,
-                status: 'ATIVO'
-            };
-
-            if (inst) { Object.assign(inst, data); }
-            else { appData.parcelamentos.push({ id: 'p' + Date.now(), ...data }); }
-
+            const data = { desc: document.getElementById('i_desc').value, catId: selectedCat.id, type: selectedCat.type, valueTotal: parseFloat(document.getElementById('i_value').value), parcelas: parseInt(document.getElementById('i_parcelas').value), dataInicio: document.getElementById('i_dataInicio').value, formaPagamento: document.getElementById('i_forma').value, tipoPessoa: document.getElementById('i_tipoPessoa').value, contaId: document.getElementById('i_conta').value, status: 'ATIVO' };
+            if (inst) Object.assign(inst, data); else appData.parcelamentos.push({ id: 'p' + Date.now(), ...data });
             const grupoId = 'pg' + Date.now();
             const valorParcela = data.valueTotal / data.parcelas;
             for (let i = 0; i < data.parcelas; i++) {
-                const d = new Date(data.dataInicio + 'T00:00:00');
-                d.setMonth(d.getMonth() + i);
-                appData.transactions.push({
-                    id: 'pt' + Date.now() + '_' + i,
-                    desc: `${data.desc} (${i + 1}/${data.parcelas})`,
-                    catId: data.catId,
-                    type: data.type,
-                    value: valorParcela,
-                    date: d.toISOString().split('T')[0],
-                    status: 'PENDENTE',
-                    formaPagamento: data.formaPagamento,
-                    tipoPessoa: data.tipoPessoa,
-                    parcelamento: data.parcelas,
-                    parcelaAtual: i + 1,
-                    contaId: data.contaId,
-                    grupoId: grupoId
-                });
+                const d = new Date(data.dataInicio + 'T00:00:00'); d.setMonth(d.getMonth() + i);
+                appData.transactions.push({ id: 'pt' + Date.now() + '_' + i, desc: `${data.desc} (${i + 1}/${data.parcelas})`, catId: data.catId, type: data.type, value: valorParcela, date: d.toISOString().split('T')[0], status: 'PENDENTE', formaPagamento: data.formaPagamento, tipoPessoa: data.tipoPessoa, parcelamento: data.parcelas, parcelaAtual: i + 1, contaId: data.contaId, grupoId: grupoId });
             }
-
             saveData(); closeModal(); renderPage('parcelamentos');
         };
     }
-
-    function openCategoryModal(tipo) {
-        document.getElementById('modal-content').innerHTML = `
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-xl font-bold text-slate-800">Nova Categoria de ${tipo === 'receita' ? 'Receita' : 'Despesa'}</h3>
-                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                </div>
-                <form id="catForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome da Categoria *</label>
-                        <input type="text" id="cat_nome" placeholder="Ex: Receita- Consultoria" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-                        <select id="cat_tipo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
-                            <option value="Recorrente">Recorrente</option>
-                            <option value="Pontual">Pontual</option>
-                            <option value="Variável">Variável</option>
-                            <option value="Fixo">Fixo</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Adicionar Categoria</button>
-                </form>
-            </div>
-        `;
-        openModal();
-
-        document.getElementById('catForm').onsubmit = (e) => {
-            e.preventDefault();
-            const newCat = {
-                id: (tipo === 'receita' ? 'r' : 'd') + Date.now(),
-                nome: document.getElementById('cat_nome').value,
-                tipo: document.getElementById('cat_tipo').value
-            };
-            if (tipo === 'receita') { appData.categories.receitas.push(newCat); }
-            else { appData.categories.despesas.push(newCat); }
-            saveData(); closeModal(); renderPage('config');
-        };
-    }
-
-    // ==========================================
-    // DELETE FUNCTIONS
-    // ==========================================
-    function deleteContract(id) {
-        if (confirm('Tem certeza que deseja excluir este contrato?')) {
-            appData.contracts = appData.contracts.filter(c => c.id !== id);
-            saveData(); renderPage('crm');
-        }
-    }
-    function deleteTransaction(id) {
-        if (confirm('Tem certeza que deseja excluir esta transação?')) {
-            const trans = appData.transactions.find(t => t.id === id);
-            if (trans && trans.grupoId) {
-                if (confirm('Esta transação faz parte de um parcelamento. Deseja excluir TODAS as parcelas?')) {
-                    appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId);
-                } else {
-                    appData.transactions = appData.transactions.filter(t => t.id !== id);
-                }
-            } else {
-                appData.transactions = appData.transactions.filter(t => t.id !== id);
-            }
-            saveData(); renderPage('financeiro');
-        }
-    }
     function deleteInstallment(id) {
-        if (confirm('Tem certeza que deseja excluir este parcelamento e todas as suas parcelas?')) {
+        if (confirm('Excluir este parcelamento e todas as suas parcelas?')) {
             const inst = appData.parcelamentos.find(p => p.id === id);
             if (inst) {
                 const relatedTrans = appData.transactions.filter(t => t.desc.startsWith(inst.desc));
-                relatedTrans.forEach(t => {
-                    appData.transactions = appData.transactions.filter(x => x.id !== t.id);
-                });
+                relatedTrans.forEach(t => { appData.transactions = appData.transactions.filter(x => x.id !== t.id); });
             }
             appData.parcelamentos = appData.parcelamentos.filter(p => p.id !== id);
             saveData(); renderPage('parcelamentos');
         }
     }
-    function deleteBankAccount(id) {
-        const transacoesVinculadas = appData.transactions.filter(t => t.contaId === id).length;
-        if (transacoesVinculadas > 0) {
-            if (!confirm(`Esta conta possui ${transacoesVinculadas} transações vinculadas. Deseja excluir mesmo assim? As transações ficarão sem conta vinculada.`)) {
-                return;
-            }
-        }
-        if (confirm('Tem certeza que deseja excluir esta conta bancária?')) {
-            appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id);
-            appData.transactions.forEach(t => {
-                if (t.contaId === id) t.contaId = null;
-            });
-            saveData(); renderPage('contas');
-        }
+
+    function openCategoryModal(tipo) {
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5"><h3 class="text-xl font-bold text-slate-800">Nova Categoria de ${tipo === 'receita' ? 'Receita' : 'Despesa'}</h3><button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button></div>
+                <form id="catForm" class="space-y-4">
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Nome da Categoria *</label><input type="text" id="cat_nome" placeholder="Ex: Receita- Consultoria" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label><select id="cat_tipo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"><option value="Recorrente">Recorrente</option><option value="Pontual">Pontual</option><option value="Variável">Variável</option><option value="Fixo">Fixo</option></select></div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Adicionar Categoria</button>
+                </form>
+            </div>
+        `;
+        openModal();
+        document.getElementById('catForm').onsubmit = (e) => {
+            e.preventDefault();
+            const newCat = { id: (tipo === 'receita' ? 'r' : 'd') + Date.now(), nome: document.getElementById('cat_nome').value, tipo: document.getElementById('cat_tipo').value };
+            if (tipo === 'receita') appData.categories.receitas.push(newCat); else appData.categories.despesas.push(newCat);
+            saveData(); closeModal(); renderPage('config');
+        };
     }
     function deleteCategory(tipo, id) {
-        if (confirm('Tem certeza que deseja excluir esta categoria?')) {
-            if (tipo === 'receita') { appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id); }
-            else { appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id); }
+        if (confirm('Excluir esta categoria?')) {
+            if (tipo === 'receita') appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id);
+            else appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id);
             saveData(); renderPage('config');
         }
     }
-
-    // ==========================================
-    // INIT
-    // ==========================================
-    document.addEventListener('DOMContentLoaded', () => { 
-        renderPage('dashboard');
-        updateNotificationBadge();
-    });
     </script>
 </body>
 </html>
