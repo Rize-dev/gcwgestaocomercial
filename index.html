@@ -7,8 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- 🔌 PREPARADO PARA SUPABASE - Descomente quando for conectar -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -31,6 +29,8 @@
         .tag-gray { background: #f1f5f9; color: #475569; }
         .tag-orange { background: #ffedd5; color: #9a3412; }
         .tag-cyan { background: #cffafe; color: #155e75; }
+        .tag-darkgreen { background: #166534; color: white; }
+        .tag-darkblue { background: #1e3a8a; color: white; }
         .bank-card { transition: all 0.2s ease; }
         .bank-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.15); }
         .notification-dropdown { animation: slideDown 0.2s ease-out; }
@@ -44,6 +44,9 @@
         #login-screen { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
         .highlight-row { animation: highlightPulse 2s ease-in-out; }
         @keyframes highlightPulse { 0% { background-color: #fef08a; } 100% { background-color: transparent; } }
+        .permission-toggle { transition: all 0.2s ease; }
+        .permission-toggle.active { background-color: #10b981; color: white; }
+        .permission-toggle.inactive { background-color: #e5e7eb; color: #6b7280; }
     </style>
     <script>
         tailwind.config = {
@@ -59,9 +62,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-    <!-- ========================================== -->
     <!-- TELA DE LOGIN -->
-    <!-- ========================================== -->
     <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 fade-in">
             <div class="text-center mb-8">
@@ -93,15 +94,14 @@
                 </button>
             </form>
             <div class="mt-6 text-center text-xs text-slate-400">
-                <p>Versão 6.1 - Produção Ready</p>
-                <p class="mt-1">Teste: admin@gcw.com / 123456</p>
+                <p>Versão 8.0 - Controle de Usuários</p>
+                <p class="mt-1">Admin: admin@gcw.com / 123456</p>
+                <p class="mt-1">Teste: usuario@gcw.com / 123456</p>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
     <!-- SISTEMA PRINCIPAL -->
-    <!-- ========================================== -->
     <div id="main-app" class="hidden flex h-screen overflow-hidden">
         <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10 flex-shrink-0">
             <div class="p-5 border-b border-slate-800 logo-container">
@@ -113,29 +113,12 @@
                     </div>
                 </div>
             </div>
-            <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
-                <a href="#" onclick="switchPage('dashboard', this)" class="sidebar-link active flex items-center p-3 rounded-lg transition-all">
-                    <i class="fas fa-chart-pie w-6"></i> Dashboard
-                </a>
-                <a href="#" onclick="switchPage('crm', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
-                    <i class="fas fa-handshake w-6"></i> CRM (Comercial)
-                </a>
-                <a href="#" onclick="switchPage('financeiro', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
-                    <i class="fas fa-wallet w-6"></i> Financeiro
-                </a>
-                <a href="#" onclick="switchPage('contas', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
-                    <i class="fas fa-university w-6"></i> Contas Bancárias
-                </a>
-                <a href="#" onclick="switchPage('parcelamentos', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
-                    <i class="fas fa-calendar-alt w-6"></i> Parcelamentos
-                </a>
-                <a href="#" onclick="switchPage('config', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
-                    <i class="fas fa-sliders-h w-6"></i> Configurações
-                </a>
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin" id="sidebar-nav">
+                <!-- Menus serão renderizados dinamicamente baseado nas permissões -->
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
-                <p>GCW v6.1 - Gestão com Wesley</p>
-                <p class="mt-1 text-green-400"><i class="fas fa-database mr-1"></i>Pronto para DB</p>
+                <p>GCW v8.0 - Gestão com Wesley</p>
+                <p class="mt-1 text-green-400"><i class="fas fa-user-shield mr-1"></i><span id="current-user-role">Admin</span></p>
             </div>
         </aside>
 
@@ -163,13 +146,13 @@
                             </div>
                             <div id="notification-list" class="overflow-y-auto max-h-[400px]"></div>
                             <div class="p-3 border-t border-slate-200 bg-slate-50 text-center">
-                                <button onclick="clearAllNotifications()" class="text-xs text-slate-500 hover:text-slate-700"><i class="fas fa-trash-alt mr-1"></i>Limpar todas as notificações</button>
+                                <button onclick="clearAllNotifications()" class="text-xs text-slate-500 hover:text-slate-700"><i class="fas fa-trash-alt mr-1"></i>Limpar todas</button>
                             </div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-200">
-                        <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">W</div>
-                        <span class="font-medium text-sm text-slate-700 hidden sm:inline">Wesley</span>
+                        <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm" id="user-avatar">A</div>
+                        <span class="font-medium text-sm text-slate-700 hidden sm:inline" id="user-name">Admin</span>
                         <button onclick="logout()" class="ml-2 text-slate-400 hover:text-red-500 transition" title="Sair">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
@@ -182,20 +165,10 @@
 
     <!-- MODAL -->
     <div id="modal-overlay" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in"></div>
+        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto fade-in"></div>
     </div>
 
     <script>
-    // ==========================================
-    // 🔌 CONFIGURAÇÃO DO BANCO DE DADOS
-    // ==========================================
-    // Quando for conectar ao Supabase, descomente e configure:
-    /*
-    const SUPABASE_URL = 'https://seu-projeto.supabase.co';
-    const SUPABASE_ANON_KEY = 'sua-chave-anonima-aqui';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    */
-
     // ==========================================
     // DADOS E ESTADO
     // ==========================================
@@ -207,6 +180,19 @@
     const STATUS_CONTRATO = ['AGUARDANDO', 'EM_ELABORACAO', 'REUNIAO', 'ENVIADA', 'ATIVO', 'NAO_INICIADO', 'PERDIDA', 'ENCERRADO'];
     const TIPOS_CONTA = ['CORRENTE', 'POUPANÇA', 'INVESTIMENTO', 'CARTÃO DE CRÉDITO', 'CARTEIRA DIGITAL'];
     const ICONES_BANCOS = ['fa-university', 'fa-credit-card', 'fa-wallet', 'fa-piggy-bank', 'fa-mobile-alt', 'fa-coins'];
+    const STATUS_VAGA = ['ABERTO', 'FECHADO', 'CANCELADO', 'CONGELADO'];
+
+    // Módulos disponíveis no sistema
+    const AVAILABLE_MODULES = [
+        { id: 'dashboard', name: 'Dashboard', icon: 'fa-chart-pie' },
+        { id: 'crm', name: 'CRM (Comercial)', icon: 'fa-handshake' },
+        { id: 'vagas', name: 'Vagas', icon: 'fa-briefcase' },
+        { id: 'financeiro', name: 'Financeiro', icon: 'fa-wallet' },
+        { id: 'contas', name: 'Contas Bancárias', icon: 'fa-university' },
+        { id: 'parcelamentos', name: 'Parcelamentos', icon: 'fa-calendar-alt' },
+        { id: 'config', name: 'Configurações', icon: 'fa-sliders-h' },
+        { id: 'usuarios', name: 'Gerenciar Usuários', icon: 'fa-users-cog' }
+    ];
 
     const DEFAULT_DATA = {
         categories: {
@@ -242,6 +228,11 @@
             { id: 'c9', client: 'Delta Ltd', value: 9000, status: 'PERDIDA', responsible: 'Pedro Lima', origem: 'INDICAÇÃO', motivoPerda: 'PREÇO', descricao: null },
             { id: 'c10', client: 'Omega SA', value: 7000, status: 'PERDIDA', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: 'ESCOLHEU CONCORRENTE', descricao: null }
         ],
+        vacancies: [
+            { id: 'v1', cliente: 'ENPECEL', cargo: 'VENDEDOR INTERNO', abertura: '2026-07-31', limite: '2026-09-04', fechamento: '2026-08-25', tempo: 18, status: 'FECHADO', faturamento: 1250, percentual: 50, data: '2026-07-31', inicioGarantia: '2026-09-09', fimGarantia: '2026-11-07', reposicao: false },
+            { id: 'v2', cliente: 'DILAVOR', cargo: 'AUXILIAR DE ESCRITÓRIO', abertura: '2026-08-19', limite: '2026-09-23', fechamento: null, tempo: null, status: 'ABERTO', faturamento: null, percentual: null, data: null, inicioGarantia: null, fimGarantia: null, reposicao: false },
+            { id: 'v3', cliente: 'CBS PARAFUSOS', cargo: 'CONSULTOR COMERCIAL', abertura: '2026-08-25', limite: '2026-09-29', fechamento: null, tempo: null, status: 'ABERTO', faturamento: null, percentual: null, data: null, inicioGarantia: null, fimGarantia: null, reposicao: false }
+        ],
         transactions: [
             { id: 't1', desc: 'Mensalidade Assessoria - Alpha', catId: 'r1', type: 'RECEITA', value: 5000, date: '2025-01-10', status: 'PAGO', formaPagamento: 'PIX', tipoPessoa: 'PJ', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b1' },
             { id: 't2', desc: 'Honorários Consultoria', catId: 'd1', type: 'DESPESA', value: 1200, date: '2025-01-05', status: 'VENCIDO', formaPagamento: 'TRANSFERÊNCIA', tipoPessoa: 'PF', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b2' },
@@ -250,33 +241,49 @@
         ],
         parcelamentos: [
             { id: 'p1', desc: 'Curso Especialização BNI', catId: 'd4', type: 'DESPESA', valueTotal: 6000, parcelas: 12, formaPagamento: 'CRÉDITO', tipoPessoa: 'PF', dataInicio: '2025-01-10', status: 'ATIVO', contaId: 'b4' }
+        ],
+        users: [
+            { 
+                id: 'u1', 
+                email: 'admin@gcw.com', 
+                password: '123456', 
+                nome: 'Wesley Admin', 
+                role: 'admin',
+                permissions: ['dashboard', 'crm', 'vagas', 'financeiro', 'contas', 'parcelamentos', 'config', 'usuarios'],
+                createdAt: '2024-01-01',
+                lastLogin: null
+            },
+            { 
+                id: 'u2', 
+                email: 'usuario@gcw.com', 
+                password: '123456', 
+                nome: 'João Usuário', 
+                role: 'user',
+                permissions: ['dashboard', 'crm', 'vagas'],
+                createdAt: '2024-01-15',
+                lastLogin: null
+            }
         ]
     };
 
     let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
+    let currentUser = null;
     let currentMonthFilter = new Date().toISOString().slice(0, 7);
     let currentAccountFilter = 'todas';
+    let currentVagaFilter = 'todas';
 
-    // ==========================================
-    // 🔌 FUNÇÕES DE BANCO DE DADOS
-    // ==========================================
-    // Substitua estas funções quando conectar ao Supabase
-    
-    async function saveData() {
-        // 🔌 SUPABASE: await supabase.from('app_data').upsert({ id: 'main', data: appData })
-        localStorage.setItem('gcwData', JSON.stringify(appData));
-    }
+    async function saveData() { localStorage.setItem('gcwData', JSON.stringify(appData)); }
+    async function loadData() { appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA; }
 
-    async function loadData() {
-        // 🔌 SUPABASE: 
-        // const { data, error } = await supabase.from('app_data').select('*').eq('id', 'main').single();
-        // if (data) appData = data.data;
-        appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
-    }
-
-    function formatCurrency(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v); }
-    function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR'); }
+    function formatCurrency(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0); }
+    function formatDate(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'; }
     function getMonthName(ym) { const [y, m] = ym.split('-'); const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return `${months[parseInt(m)-1]} ${y}`; }
+    function calcularDias(data1, data2) {
+        if (!data1 || !data2) return null;
+        const d1 = new Date(data1 + 'T00:00:00');
+        const d2 = new Date(data2 + 'T00:00:00');
+        return Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+    }
 
     function calcularSaldoConta(contaId) {
         const conta = appData.bankAccounts.find(b => b.id === contaId);
@@ -288,7 +295,27 @@
     }
 
     // ==========================================
-    // 🔐 SISTEMA DE LOGIN
+    // SISTEMA DE PERMISSÕES
+    // ==========================================
+    function hasPermission(moduleId) {
+        if (!currentUser) return false;
+        if (currentUser.role === 'admin') return true; // Admin tem acesso total
+        return currentUser.permissions.includes(moduleId);
+    }
+
+    function renderSidebar() {
+        const nav = document.getElementById('sidebar-nav');
+        const menus = AVAILABLE_MODULES.filter(m => hasPermission(m.id));
+        
+        nav.innerHTML = menus.map(m => `
+            <a href="#" onclick="switchPage('${m.id}', this)" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-800 transition-all text-slate-300">
+                <i class="fas ${m.icon} w-6"></i> ${m.name}
+            </a>
+        `).join('');
+    }
+
+    // ==========================================
+    // LOGIN
     // ==========================================
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -304,9 +331,13 @@
 
         await new Promise(r => setTimeout(r, 600));
 
-        //  SUPABASE: const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (email === 'admin@gcw.com' && password === '123456') {
-            localStorage.setItem('gcw_auth', 'true');
+        const user = appData.users.find(u => u.email === email && u.password === password);
+        
+        if (user) {
+            currentUser = user;
+            user.lastLogin = new Date().toISOString();
+            localStorage.setItem('gcw_current_user', user.id);
+            await saveData();
             await loadData();
             showMainApp();
         } else {
@@ -319,157 +350,106 @@
     function showMainApp() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
-        renderPage('dashboard');
-        updateNotificationBadge();
+        
+        // Atualizar informações do usuário no header
+        document.getElementById('user-name').innerText = currentUser.nome;
+        document.getElementById('user-avatar').innerText = currentUser.nome.charAt(0).toUpperCase();
+        document.getElementById('current-user-role').innerText = currentUser.role === 'admin' ? 'Administrador' : 'Usuário';
+        
+        renderSidebar();
+        
+        // Redirecionar para o primeiro módulo disponível
+        const firstModule = AVAILABLE_MODULES.find(m => hasPermission(m.id));
+        if (firstModule) {
+            renderPage(firstModule.id);
+        }
     }
 
     function logout() {
         if(confirm('Deseja realmente sair do sistema?')) {
-            localStorage.removeItem('gcw_auth');
-            // 🔌 SUPABASE: await supabase.auth.signOut();
+            currentUser = null;
+            localStorage.removeItem('gcw_current_user');
             location.reload();
         }
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-        if (localStorage.getItem('gcw_auth') === 'true') {
-            await loadData();
-            showMainApp();
+        await loadData();
+        const userId = localStorage.getItem('gcw_current_user');
+        if (userId) {
+            currentUser = appData.users.find(u => u.id === userId);
+            if (currentUser) {
+                showMainApp();
+            }
         }
     });
 
     // ==========================================
-    // 🔔 SISTEMA DE NOTIFICAÇÕES COMPLETO
+    // NOTIFICAÇÕES
     // ==========================================
     function generateNotifications() {
         const notifications = [];
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const threeDaysFromNow = new Date(today); threeDaysFromNow.setDate(today.getDate() + 3);
 
-        // Contas Vencidas (URGENTE)
-        appData.transactions.filter(t => t.status === 'VENCIDO').forEach(t => {
-            const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
-            notifications.push({ 
-                id: 'n_venc_' + t.id, 
-                type: 'URGENTE', 
-                icon: 'fa-exclamation-circle', 
-                color: 'red', 
-                title: 'Conta Vencida!', 
-                message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`, 
-                category: cat ? cat.nome : 'N/A', 
-                date: new Date().toISOString(), 
-                read: false, 
-                action: { type: 'financeiro', id: t.id, scrollTo: t.id } 
+        if (hasPermission('financeiro')) {
+            appData.transactions.filter(t => t.status === 'VENCIDO').forEach(t => {
+                const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
+                notifications.push({ id: 'n_venc_' + t.id, type: 'URGENTE', icon: 'fa-exclamation-circle', color: 'red', title: 'Conta Vencida!', message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
             });
-        });
 
-        // Contas Próximas do Vencimento
-        appData.transactions.filter(t => {
-            if (t.status !== 'PENDENTE') return false;
-            const dueDate = new Date(t.date + 'T00:00:00');
-            return dueDate >= today && dueDate <= threeDaysFromNow;
-        }).forEach(t => {
-            const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
-            const dueDate = new Date(t.date + 'T00:00:00');
-            const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-            notifications.push({ 
-                id: 'n_prox_' + t.id, 
-                type: 'AVISO', 
-                icon: 'fa-clock', 
-                color: 'yellow', 
-                title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`, 
-                message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`, 
-                category: cat ? cat.nome : 'N/A', 
-                date: new Date().toISOString(), 
-                read: false, 
-                action: { type: 'financeiro', id: t.id, scrollTo: t.id } 
+            appData.transactions.filter(t => {
+                if (t.status !== 'PENDENTE') return false;
+                const dueDate = new Date(t.date + 'T00:00:00');
+                return dueDate >= today && dueDate <= threeDaysFromNow;
+            }).forEach(t => {
+                const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
+                const dueDate = new Date(t.date + 'T00:00:00');
+                const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                notifications.push({ id: 'n_prox_' + t.id, type: 'AVISO', icon: 'fa-clock', color: 'yellow', title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`, message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
             });
-        });
 
-        // Receitas Recebidas
-        appData.transactions.filter(t => t.type === 'RECEITA' && t.status === 'PAGO').slice(0, 3).forEach(t => {
-            notifications.push({ 
-                id: 'n_rec_' + t.id, 
-                type: 'SUCESSO', 
-                icon: 'fa-check-circle', 
-                color: 'green', 
-                title: 'Receita Confirmada!', 
-                message: `${t.desc} - ${formatCurrency(t.value)} recebido`, 
-                category: 'Receita', 
-                date: new Date().toISOString(), 
-                read: false, 
-                action: { type: 'financeiro', id: t.id, scrollTo: t.id } 
+            appData.transactions.filter(t => t.type === 'RECEITA' && t.status === 'PAGO').slice(0, 3).forEach(t => {
+                notifications.push({ id: 'n_rec_' + t.id, type: 'SUCESSO', icon: 'fa-check-circle', color: 'green', title: 'Receita Confirmada!', message: `${t.desc} - ${formatCurrency(t.value)} recebido`, category: 'Receita', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
             });
-        });
+        }
 
-        // Contratos em Negociação
-        appData.contracts.filter(c => ['ENVIADA', 'REUNIAO', 'EM_ELABORACAO'].includes(c.status)).forEach(c => {
-            let statusText = 'Em Negociação';
-            if (c.status === 'ENVIADA') statusText = 'Proposta Enviada';
-            else if (c.status === 'REUNIAO') statusText = 'Reunião Agendada';
-            else if (c.status === 'EM_ELABORACAO') statusText = 'Proposta em Elaboração';
-            
-            notifications.push({ 
-                id: 'n_neg_' + c.id, 
-                type: 'INFO', 
-                icon: 'fa-handshake', 
-                color: 'blue', 
-                title: statusText, 
-                message: `${c.client} - ${formatCurrency(c.value)}`, 
-                category: 'CRM', 
-                date: new Date().toISOString(), 
-                read: false, 
-                action: { type: 'crm', id: c.id, scrollTo: c.id } 
+        if (hasPermission('crm')) {
+            appData.contracts.filter(c => ['ENVIADA', 'REUNIAO', 'EM_ELABORACAO'].includes(c.status)).forEach(c => {
+                let statusText = 'Em Negociação';
+                if (c.status === 'ENVIADA') statusText = 'Proposta Enviada';
+                else if (c.status === 'REUNIAO') statusText = 'Reunião Agendada';
+                else if (c.status === 'EM_ELABORACAO') statusText = 'Proposta em Elaboração';
+                notifications.push({ id: 'n_neg_' + c.id, type: 'INFO', icon: 'fa-handshake', color: 'blue', title: statusText, message: `${c.client} - ${formatCurrency(c.value)}`, category: 'CRM', date: new Date().toISOString(), read: false, action: { type: 'crm', id: c.id, scrollTo: c.id } });
             });
-        });
 
-        // Contratos Perdidos
-        appData.contracts.filter(c => c.status === 'PERDIDA').slice(0, 2).forEach(c => {
-            notifications.push({ 
-                id: 'n_perd_' + c.id, 
-                type: 'AVISO', 
-                icon: 'fa-times-circle', 
-                color: 'red', 
-                title: 'Contrato Perdido', 
-                message: `${c.client} - ${formatCurrency(c.value)} | Motivo: ${c.motivoPerda || 'Não informado'}`, 
-                category: 'CRM', 
-                date: new Date().toISOString(), 
-                read: false, 
-                action: { type: 'crm', id: c.id, scrollTo: c.id } 
+            appData.contracts.filter(c => c.status === 'PERDIDA').slice(0, 2).forEach(c => {
+                notifications.push({ id: 'n_perd_' + c.id, type: 'AVISO', icon: 'fa-times-circle', color: 'red', title: 'Contrato Perdido', message: `${c.client} - ${formatCurrency(c.value)} | Motivo: ${c.motivoPerda || 'Não informado'}`, category: 'CRM', date: new Date().toISOString(), read: false, action: { type: 'crm', id: c.id, scrollTo: c.id } });
             });
-        });
+        }
 
-        // Saldo Baixo
-        appData.bankAccounts.forEach(b => {
-            const saldo = calcularSaldoConta(b.id);
-            if (saldo < 1000 && saldo >= 0) {
-                notifications.push({ 
-                    id: 'n_saldo_' + b.id, 
-                    type: 'AVISO', 
-                    icon: 'fa-wallet', 
-                    color: 'yellow', 
-                    title: 'Saldo Baixo', 
-                    message: `${b.nome} está com ${formatCurrency(saldo)}`, 
-                    category: 'Contas Bancárias', 
-                    date: new Date().toISOString(), 
-                    read: false, 
-                    action: { type: 'contas', id: b.id, scrollTo: b.id } 
-                });
-            } else if (saldo < 0) {
-                notifications.push({ 
-                    id: 'n_saldo_neg_' + b.id, 
-                    type: 'URGENTE', 
-                    icon: 'fa-exclamation-triangle', 
-                    color: 'red', 
-                    title: 'Saldo Negativo!', 
-                    message: `${b.nome} está com ${formatCurrency(saldo)}`, 
-                    category: 'Contas Bancárias', 
-                    date: new Date().toISOString(), 
-                    read: false, 
-                    action: { type: 'contas', id: b.id, scrollTo: b.id } 
-                });
-            }
-        });
+        if (hasPermission('vagas')) {
+            appData.vacancies.filter(v => {
+                if (v.status !== 'ABERTO' || !v.limite) return false;
+                const limiteDate = new Date(v.limite + 'T00:00:00');
+                return limiteDate >= today && limiteDate <= threeDaysFromNow;
+            }).forEach(v => {
+                const limiteDate = new Date(v.limite + 'T00:00:00');
+                const daysLeft = Math.ceil((limiteDate - today) / (1000 * 60 * 60 * 24));
+                notifications.push({ id: 'n_vaga_' + v.id, type: 'AVISO', icon: 'fa-briefcase', color: 'yellow', title: daysLeft === 0 ? 'Vaga vence hoje!' : `Vaga vence em ${daysLeft} dia(s)`, message: `${v.cliente} - ${v.cargo}`, category: 'Vagas', date: new Date().toISOString(), read: false, action: { type: 'vagas', id: v.id, scrollTo: v.id } });
+            });
+        }
+
+        if (hasPermission('contas')) {
+            appData.bankAccounts.forEach(b => {
+                const saldo = calcularSaldoConta(b.id);
+                if (saldo < 1000 && saldo >= 0) {
+                    notifications.push({ id: 'n_saldo_' + b.id, type: 'AVISO', icon: 'fa-wallet', color: 'yellow', title: 'Saldo Baixo', message: `${b.nome} está com ${formatCurrency(saldo)}`, category: 'Contas Bancárias', date: new Date().toISOString(), read: false, action: { type: 'contas', id: b.id, scrollTo: b.id } });
+                } else if (saldo < 0) {
+                    notifications.push({ id: 'n_saldo_neg_' + b.id, type: 'URGENTE', icon: 'fa-exclamation-triangle', color: 'red', title: 'Saldo Negativo!', message: `${b.nome} está com ${formatCurrency(saldo)}`, category: 'Contas Bancárias', date: new Date().toISOString(), read: false, action: { type: 'contas', id: b.id, scrollTo: b.id } });
+                }
+            });
+        }
 
         const urgencyOrder = { 'URGENTE': 0, 'AVISO': 1, 'SUCESSO': 2, 'INFO': 3 };
         notifications.sort((a, b) => urgencyOrder[a.type] - urgencyOrder[b.type]);
@@ -493,12 +473,10 @@
     function renderNotifications() {
         const notifications = generateNotifications();
         const list = document.getElementById('notification-list');
-        
         if (notifications.length === 0) {
             list.innerHTML = `<div class="p-8 text-center"><i class="fas fa-bell-slash text-4xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma notificação</p></div>`;
             return;
         }
-
         list.innerHTML = notifications.map(n => {
             const colorClasses = { 'red': 'bg-red-100 text-red-600', 'yellow': 'bg-yellow-100 text-yellow-600', 'green': 'bg-green-100 text-green-600', 'blue': 'bg-blue-100 text-blue-600', 'purple': 'bg-purple-100 text-purple-600' };
             const typeLabels = { 'URGENTE': 'Urgente', 'AVISO': 'Aviso', 'SUCESSO': 'Sucesso', 'INFO': 'Info' };
@@ -519,23 +497,17 @@
     }
 
     function handleNotificationClick(pageType, id, notificationId, scrollToId) {
-        // Marca como lida
+        if (!hasPermission(pageType)) {
+            alert('Você não tem permissão para acessar este módulo.');
+            return;
+        }
         const notifications = generateNotifications();
         const notif = notifications.find(n => n.id === notificationId);
-        if (notif) {
-            notif.read = true;
-            // 🔌 SUPABASE: await supabase.from('notifications').update({ read: true }).eq('id', notificationId);
-        }
-
-        // Navega para a página correta
+        if (notif) notif.read = true;
         const pageElement = document.querySelector(`[onclick="switchPage('${pageType}', this)"]`);
         switchPage(pageType, pageElement);
-
-        // Fecha o dropdown
         document.getElementById('notification-dropdown').classList.add('hidden');
         updateNotificationBadge();
-
-        // Scroll para o item específico após a página renderizar
         setTimeout(() => {
             if (scrollToId) {
                 const element = document.getElementById(`item-${scrollToId}`);
@@ -550,18 +522,14 @@
 
     function markAllAsRead() {
         const notifications = generateNotifications();
-        notifications.forEach(n => {
-            n.read = true;
-            // 🔌 SUPABASE: await supabase.from('notifications').update({ read: true }).eq('id', n.id);
-        });
+        notifications.forEach(n => { n.read = true; });
         updateNotificationBadge();
         renderNotifications();
         alert('Todas as notificações marcadas como lidas!');
     }
 
     function clearAllNotifications() {
-        if (confirm('Deseja limpar TODAS as notificações? Esta ação não pode ser desfeita.')) {
-            // 🔌 SUPABASE: await supabase.from('notifications').delete().neq('id', '0');
+        if (confirm('Deseja limpar TODAS as notificações?')) {
             document.getElementById('notification-dropdown').classList.add('hidden');
             updateNotificationBadge();
         }
@@ -577,17 +545,25 @@
     // NAVEGAÇÃO
     // ==========================================
     function switchPage(pageId, element) {
+        if (!hasPermission(pageId)) {
+            alert('Você não tem permissão para acessar este módulo.');
+            return;
+        }
         document.querySelectorAll('.sidebar-link').forEach(el => { el.classList.remove('active'); el.classList.add('text-slate-300'); });
         if (element) { element.classList.add('active'); element.classList.remove('text-slate-300'); }
-        const titles = { 'dashboard': 'Dashboard Executivo', 'crm': 'Gestão Comercial (CRM)', 'financeiro': 'Controle Financeiro', 'contas': 'Contas Bancárias', 'parcelamentos': 'Parcelamentos Longos', 'config': 'Configurações do Sistema' };
-        document.getElementById('page-title').innerText = titles[pageId];
+        const titles = { 'dashboard': 'Dashboard Executivo', 'crm': 'Gestão Comercial (CRM)', 'vagas': 'Controle de Vagas', 'financeiro': 'Controle Financeiro', 'contas': 'Contas Bancárias', 'parcelamentos': 'Parcelamentos Longos', 'config': 'Configurações do Sistema', 'usuarios': 'Gerenciamento de Usuários' };
+        document.getElementById('page-title').innerText = titles[pageId] || 'Sistema';
         renderPage(pageId);
     }
 
     function renderPage(pageId) {
+        if (!hasPermission(pageId)) {
+            document.getElementById('pages-container').innerHTML = '<div class="p-8 text-center text-slate-500 fade-in"><i class="fas fa-lock text-6xl text-slate-300 mb-4"></i><h3 class="text-xl font-semibold text-slate-700 mb-2">Acesso Negado</h3><p class="text-slate-500">Você não tem permissão para acessar este módulo.</p></div>';
+            return;
+        }
         const c = document.getElementById('pages-container');
         c.innerHTML = '';
-        ({ 'dashboard': renderDashboard, 'crm': renderCRM, 'financeiro': renderFinanceiro, 'contas': renderContas, 'parcelamentos': renderParcelamentos, 'config': renderConfig })[pageId](c);
+        ({ 'dashboard': renderDashboard, 'crm': renderCRM, 'vagas': renderVagas, 'financeiro': renderFinanceiro, 'contas': renderContas, 'parcelamentos': renderParcelamentos, 'config': renderConfig, 'usuarios': renderUsuarios })[pageId](c);
         updateNotificationBadge();
     }
 
@@ -597,6 +573,7 @@
     function renderDashboard(c) {
         const contracts = appData.contracts;
         const transactions = appData.transactions;
+        const vacancies = appData.vacancies;
         const ativos = contracts.filter(x => x.status === 'ATIVO');
         const naoIniciados = contracts.filter(x => x.status === 'NAO_INICIADO');
         const valorContratado = ativos.reduce((s, x) => s + x.value, 0) + naoIniciados.reduce((s, x) => s + x.value, 0);
@@ -604,24 +581,30 @@
         const despesas = transactions.filter(t => t.type === 'DESPESA');
         const totalReceitas = receitas.reduce((s, t) => s + t.value, 0);
         const totalDespesas = despesas.reduce((s, t) => s + t.value, 0);
-        const lucro = totalReceitas - totalDespesas;
         const saldoTotalContas = appData.bankAccounts.reduce((s, b) => s + calcularSaldoConta(b.id), 0);
+        const vagasAbertas = vacancies.filter(v => v.status === 'ABERTO').length;
+        const vagasFechadas = vacancies.filter(v => v.status === 'FECHADO').length;
 
         c.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-                ${kpiCard('Valor Contratado', formatCurrency(valorContratado), 'fa-file-contract', 'bg-blue-500', `${ativos.length} ativos + ${naoIniciados.length} não iniciados`)}
-                ${kpiCard('Receita Total', formatCurrency(totalReceitas), 'fa-arrow-trend-up', 'bg-emerald-500', `${receitas.length} transações`)}
-                ${kpiCard('Despesas Total', formatCurrency(totalDespesas), 'fa-arrow-trend-down', 'bg-red-500', `${despesas.length} transações`)}
-                ${kpiCard('Saldo em Contas', formatCurrency(saldoTotalContas), 'fa-university', saldoTotalContas >= 0 ? 'bg-purple-500' : 'bg-orange-500', `${appData.bankAccounts.length} contas cadastradas`)}
+                ${hasPermission('crm') ? kpiCard('Valor Contratado', formatCurrency(valorContratado), 'fa-file-contract', 'bg-blue-500', `${ativos.length} ativos + ${naoIniciados.length} não iniciados`) : ''}
+                ${hasPermission('financeiro') ? kpiCard('Receita Total', formatCurrency(totalReceitas), 'fa-arrow-trend-up', 'bg-emerald-500', `${receitas.length} transações`) : ''}
+                ${hasPermission('vagas') ? kpiCard('Vagas Abertas', vagasAbertas, 'fa-briefcase', 'bg-yellow-500', `${vagasFechadas} vagas fechadas`) : ''}
+                ${hasPermission('contas') ? kpiCard('Saldo em Contas', formatCurrency(saldoTotalContas), 'fa-university', saldoTotalContas >= 0 ? 'bg-purple-500' : 'bg-orange-500', `${appData.bankAccounts.length} contas cadastradas`) : ''}
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 fade-in">
-                <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Fluxo de Caixa</h3>
-                    <canvas id="cashFlowChart" height="100"></canvas>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-3">Status dos Contratos</h3>
-                    <canvas id="contractStatusChart" height="200"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 fade-in">
+                ${hasPermission('financeiro') ? `<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"><h3 class="text-lg font-semibold text-slate-800 mb-3">Fluxo de Caixa</h3><canvas id="cashFlowChart" height="100"></canvas></div>` : ''}
+                ${hasPermission('vagas') ? `<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"><h3 class="text-lg font-semibold text-slate-800 mb-3">Status das Vagas</h3><canvas id="vagasChart" height="200"></canvas></div>` : ''}
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 fade-in">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4"><i class="fas fa-user-shield mr-2 text-primary-600"></i>Suas Permissões</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    ${AVAILABLE_MODULES.filter(m => m.id !== 'usuarios').map(m => `
+                        <div class="flex items-center space-x-2 p-3 ${hasPermission(m.id) ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200 opacity-50'} rounded-lg">
+                            <i class="fas ${m.icon} ${hasPermission(m.id) ? 'text-green-600' : 'text-gray-400'}"></i>
+                            <span class="text-sm font-medium ${hasPermission(m.id) ? 'text-green-800' : 'text-gray-500'}">${m.name}</span>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;
@@ -637,16 +620,20 @@
     }
 
     function renderCharts() {
-        const ctx1 = document.getElementById('cashFlowChart');
-        if (ctx1) {
-            new Chart(ctx1, { type: 'bar', data: { labels: ['Receitas', 'Despesas', 'Lucro'], datasets: [{ label: 'Valores (R$)', data: [appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0), appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0), appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)], backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'], borderRadius: 8, barThickness: 40 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } } });
+        if (hasPermission('financeiro')) {
+            const ctx1 = document.getElementById('cashFlowChart');
+            if (ctx1) {
+                new Chart(ctx1, { type: 'bar', data: { labels: ['Receitas', 'Despesas', 'Lucro'], datasets: [{ label: 'Valores (R$)', data: [appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0), appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0), appData.transactions.filter(t => t.type === 'RECEITA').reduce((s, t) => s + t.value, 0) - appData.transactions.filter(t => t.type === 'DESPESA').reduce((s, t) => s + t.value, 0)], backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'], borderRadius: 8, barThickness: 40 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } } });
+            }
         }
-        const ctx2 = document.getElementById('contractStatusChart');
-        if (ctx2) {
-            const statuses = ['ATIVO', 'NAO_INICIADO', 'REUNIAO', 'ENVIADA', 'PERDIDA', 'AGUARDANDO', 'EM_ELABORACAO', 'ENCERRADO'];
-            const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#64748b', '#06b6d4', '#94a3b8'];
-            const data = statuses.map(s => appData.contracts.filter(c => c.status === s).length);
-            new Chart(ctx2, { type: 'doughnut', data: { labels: ['Ativos', 'Não Iniciados', 'Reunião', 'Enviadas', 'Perdidas', 'Aguardando', 'Em Elaboração', 'Encerrados'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } } } });
+        if (hasPermission('vagas')) {
+            const ctx2 = document.getElementById('vagasChart');
+            if (ctx2) {
+                const statusVagas = ['ABERTO', 'FECHADO', 'CANCELADO', 'CONGELADO'];
+                const colors = ['#84cc16', '#166534', '#ef4444', '#1e3a8a'];
+                const data = statusVagas.map(s => appData.vacancies.filter(v => v.status === s).length);
+                new Chart(ctx2, { type: 'doughnut', data: { labels: ['Abertas', 'Fechadas', 'Canceladas', 'Congeladas'], datasets: [{ data, backgroundColor: colors, borderWidth: 0, cutout: '70%' }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } } } });
+            }
         }
     }
 
@@ -693,6 +680,96 @@
                         </div>
                     </div>`;
                 }).join('')}
+            </div>
+        `;
+    }
+
+    // ==========================================
+    // VAGAS
+    // ==========================================
+    function renderVagas(c) {
+        const vacancies = appData.vacancies;
+        const filteredVagas = currentVagaFilter === 'todas' ? vacancies : vacancies.filter(v => v.status === currentVagaFilter);
+        
+        const vagasAbertas = vacancies.filter(v => v.status === 'ABERTO').length;
+        const vagasFechadas = vacancies.filter(v => v.status === 'FECHADO').length;
+        const faturamentoTotal = vacancies.filter(v => v.status === 'FECHADO').reduce((s, v) => s + (v.faturamento || 0), 0);
+
+        c.innerHTML = `
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-3 fade-in">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Vagas Abertas</span>
+                        <span class="font-bold text-lg text-green-600">${vagasAbertas}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Vagas Fechadas</span>
+                        <span class="font-bold text-lg text-emerald-700">${vagasFechadas}</span>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        <span class="text-xs text-slate-500 block">Faturamento Total</span>
+                        <span class="font-bold text-lg text-primary-600">${formatCurrency(faturamentoTotal)}</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select onchange="currentVagaFilter = this.value; renderPage('vagas')" class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none">
+                        <option value="todas" ${currentVagaFilter === 'todas' ? 'selected' : ''}>Todos os Status</option>
+                        ${STATUS_VAGA.map(s => `<option value="${s}" ${currentVagaFilter === s ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                    <button onclick="openVagaModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
+                        <i class="fas fa-plus mr-2"></i> Nova Vaga
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Cargo</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Abertura</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Limite</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Fechamento</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tempo</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Faturamento</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">%</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Data</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Início Garantia</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Fim Garantia</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Reposição</th>
+                                <th class="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-100">
+                            ${filteredVagas.length === 0 ? '<tr><td colspan="14" class="px-4 py-8 text-center text-slate-400">Nenhuma vaga encontrada.</td></tr>' : ''}
+                            ${filteredVagas.map(v => {
+                                const statusColors = { 'ABERTO': 'tag-green', 'FECHADO': 'tag-darkgreen', 'CANCELADO': 'tag-red', 'CONGELADO': 'tag-darkblue' };
+                                return `<tr id="item-${v.id}" class="hover:bg-slate-50 transition">
+                                    <td class="px-3 py-3 text-sm font-medium text-slate-800">${v.cliente}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-600">${v.cargo}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.abertura)}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.limite)}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.fechamento)}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${v.tempo !== null ? v.tempo + ' dias' : '-'}</td>
+                                    <td class="px-3 py-3"><span class="tag ${statusColors[v.status]}">${v.status}</span></td>
+                                    <td class="px-3 py-3 text-sm font-semibold text-emerald-600">${v.faturamento ? formatCurrency(v.faturamento) : '-'}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${v.percentual ? v.percentual + '%' : '-'}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.data)}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.inicioGarantia)}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.fimGarantia)}</td>
+                                    <td class="px-3 py-3 text-sm">${v.reposicao ? '<span class="tag tag-yellow">Sim</span>' : '<span class="tag tag-gray">Não</span>'}</td>
+                                    <td class="px-3 py-3 text-right text-sm">
+                                        <button onclick="openVagaModal('${v.id}')" class="text-primary-600 hover:text-primary-900 mr-2"><i class="fas fa-edit"></i></button>
+                                        <button onclick="deleteVaga('${v.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
     }
@@ -1008,9 +1085,81 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Receitas</p><p class="text-2xl font-bold text-emerald-600">${appData.categories.receitas.length}</p><p class="text-xs text-slate-400">categorias</p></div>
                     <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Despesas</p><p class="text-2xl font-bold text-red-600">${appData.categories.despesas.length}</p><p class="text-xs text-slate-400">categorias</p></div>
-                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Contas Bancárias</p><p class="text-2xl font-bold text-primary-600">${appData.bankAccounts.length}</p><p class="text-xs text-slate-400">cadastradas</p></div>
-                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Formas de Pagamento</p><p class="text-2xl font-bold text-purple-600">${FORMAS_PAGAMENTO.length}</p><p class="text-xs text-slate-400">opções</p></div>
+                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Vagas</p><p class="text-2xl font-bold text-primary-600">${appData.vacancies.length}</p><p class="text-xs text-slate-400">cadastradas</p></div>
+                    <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Contas Bancárias</p><p class="text-2xl font-bold text-purple-600">${appData.bankAccounts.length}</p><p class="text-xs text-slate-400">cadastradas</p></div>
                 </div>
+            </div>
+        `;
+    }
+
+    // ==========================================
+    // GERENCIAMENTO DE USUÁRIOS
+    // ==========================================
+    function renderUsuarios(c) {
+        if (!hasPermission('usuarios')) {
+            c.innerHTML = '<div class="p-8 text-center text-slate-500 fade-in"><i class="fas fa-lock text-6xl text-slate-300 mb-4"></i><h3 class="text-xl font-semibold text-slate-700 mb-2">Acesso Negado</h3><p class="text-slate-500">Apenas administradores podem gerenciar usuários.</p></div>';
+            return;
+        }
+
+        const users = appData.users;
+
+        c.innerHTML = `
+            <div class="flex justify-between items-center mb-5 fade-in">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-slate-500">Total de Usuários:</span>
+                    <span class="font-bold text-slate-800">${users.length}</span>
+                </div>
+                <button onclick="openUserModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition shadow-sm flex items-center text-sm">
+                    <i class="fas fa-user-plus mr-2"></i> Novo Usuário
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">E-mail</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Perfil</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Permissões</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Criado em</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Último Login</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-100">
+                            ${users.map(u => {
+                                const permissionsCount = u.role === 'admin' ? AVAILABLE_MODULES.length : u.permissions.length;
+                                return `<tr id="item-${u.id}" class="hover:bg-slate-50 transition">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold text-sm mr-2">${u.nome.charAt(0).toUpperCase()}</div>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">${u.nome}</p>
+                                                ${u.id === currentUser.id ? '<span class="text-xs text-primary-600">Você</span>' : ''}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-slate-600">${u.email}</td>
+                                    <td class="px-4 py-3"><span class="tag ${u.role === 'admin' ? 'tag-purple' : 'tag-blue'}">${u.role === 'admin' ? 'Administrador' : 'Usuário'}</span></td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${permissionsCount} módulos</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${formatDate(u.createdAt)}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">${u.lastLogin ? formatDate(u.lastLogin.split('T')[0]) : 'Nunca'}</td>
+                                    <td class="px-4 py-3 text-right text-sm">
+                                        <button onclick="openUserModal('${u.id}')" class="text-primary-600 hover:text-primary-900 mr-2"><i class="fas fa-edit"></i></button>
+                                        ${u.id !== currentUser.id ? `<button onclick="deleteUser('${u.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>` : ''}
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 fade-in">
+                <h4 class="font-semibold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Gerenciamento de Usuários</h4>
+                <p class="text-sm text-blue-700">Como administrador, você pode criar novos usuários e definir exatamente quais módulos cada um pode acessar. Usuários com perfil "Administrador" têm acesso total ao sistema.</p>
             </div>
         `;
     }
@@ -1021,14 +1170,161 @@
     function openModal() { document.getElementById('modal-overlay').classList.remove('hidden'); }
     function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
+    // --- USER MODAL ---
+    function openUserModal(id = null) {
+        const user = id ? appData.users.find(u => u.id === id) : null;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">${user ? 'Editar' : 'Novo'} Usuário</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form id="userForm" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Nome Completo *</label><input type="text" id="u_nome" value="${user ? user.nome : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label><input type="email" id="u_email" value="${user ? user.email : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Senha *</label><input type="password" id="u_password" value="${user ? user.password : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Perfil *</label><select id="u_role" onchange="togglePermissions()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"><option value="user" ${user && user.role === 'user' ? 'selected' : ''}>Usuário</option><option value="admin" ${user && user.role === 'admin' ? 'selected' : ''}>Administrador</option></select></div>
+                    </div>
+                    
+                    <div id="permissionsSection" class="border-t border-slate-200 pt-4">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3"><i class="fas fa-shield-alt mr-1"></i>Permissões de Acesso</h4>
+                        <p class="text-xs text-slate-500 mb-3">Selecione quais módulos este usuário poderá acessar:</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${AVAILABLE_MODULES.filter(m => m.id !== 'usuarios').map(m => `
+                                <label class="flex items-center space-x-2 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                                    <input type="checkbox" class="permission-checkbox w-4 h-4 text-primary-600 rounded focus:ring-primary-500" value="${m.id}" ${user && user.permissions.includes(m.id) ? 'checked' : ''}>
+                                    <i class="fas ${m.icon} text-slate-400"></i>
+                                    <span class="text-sm font-medium text-slate-700">${m.name}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Usuário</button>
+                </form>
+            </div>
+        `;
+        openModal();
+        togglePermissions();
+
+        document.getElementById('userForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const role = document.getElementById('u_role').value;
+            const permissions = role === 'admin' ? AVAILABLE_MODULES.map(m => m.id) : Array.from(document.querySelectorAll('.permission-checkbox:checked')).map(cb => cb.value);
+            
+            const data = {
+                nome: document.getElementById('u_nome').value,
+                email: document.getElementById('u_email').value,
+                password: document.getElementById('u_password').value,
+                role: role,
+                permissions: permissions,
+                createdAt: user ? user.createdAt : new Date().toISOString().split('T')[0],
+                lastLogin: user ? user.lastLogin : null
+            };
+
+            if (user) { Object.assign(user, data); }
+            else { appData.users.push({ id: 'u' + Date.now(), ...data }); }
+            await saveData(); closeModal(); renderPage('usuarios');
+        };
+    }
+
+    function togglePermissions() {
+        const role = document.getElementById('u_role').value;
+        const section = document.getElementById('permissionsSection');
+        if (role === 'admin') {
+            section.style.display = 'none';
+        } else {
+            section.style.display = 'block';
+        }
+    }
+
+    async function deleteUser(id) {
+        if (id === currentUser.id) {
+            alert('Você não pode excluir seu próprio usuário!');
+            return;
+        }
+        if (confirm('Excluir este usuário? Esta ação não pode ser desfeita.')) {
+            appData.users = appData.users.filter(u => u.id !== id);
+            await saveData(); renderPage('usuarios');
+        }
+    }
+
+    // --- VAGA MODAL ---
+    function openVagaModal(id = null) {
+        const vaga = id ? appData.vacancies.find(v => v.id === id) : null;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-bold text-slate-800">${vaga ? 'Editar' : 'Nova'} Vaga</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form id="vagaForm" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Cliente *</label><input type="text" id="v_cliente" value="${vaga ? vaga.cliente : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Cargo *</label><input type="text" id="v_cargo" value="${vaga ? vaga.cargo : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Abertura *</label><input type="date" id="v_abertura" value="${vaga ? vaga.abertura : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Limite</label><input type="date" id="v_limite" value="${vaga ? vaga.limite || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Fechamento</label><input type="date" id="v_fechamento" value="${vaga ? vaga.fechamento || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Tempo (dias)</label><input type="number" id="v_tempo" value="${vaga ? vaga.tempo || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" readonly><p class="text-xs text-slate-400 mt-1">Calculado automaticamente</p></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Status *</label><select id="v_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${STATUS_VAGA.map(s => `<option value="${s}" ${vaga && vaga.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+                    </div>
+                    <div class="border-t border-slate-200 pt-4">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3"><i class="fas fa-dollar-sign mr-1"></i>Informações Financeiras</h4>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Faturamento (R$)</label><input type="number" step="0.01" id="v_faturamento" value="${vaga ? vaga.faturamento || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">%</label><input type="number" step="0.01" id="v_percentual" value="${vaga ? vaga.percentual || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Data</label><input type="date" id="v_data" value="${vaga ? vaga.data || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Início da Garantia</label><input type="date" id="v_inicioGarantia" value="${vaga ? vaga.inicioGarantia || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Fim da Garantia</label><input type="date" id="v_fimGarantia" value="${vaga ? vaga.fimGarantia || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="v_reposicao" ${vaga && vaga.reposicao ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500">
+                                <span class="text-sm font-medium text-slate-700">Reposição (Garantia acionada)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition font-medium mt-4">Salvar Vaga</button>
+                </form>
+            </div>
+        `;
+        openModal();
+        const calcTempo = () => {
+            const abertura = document.getElementById('v_abertura').value;
+            const fechamento = document.getElementById('v_fechamento').value;
+            const tempo = calcularDias(abertura, fechamento);
+            document.getElementById('v_tempo').value = tempo !== null ? tempo : '';
+        };
+        document.getElementById('v_abertura').addEventListener('change', calcTempo);
+        document.getElementById('v_fechamento').addEventListener('change', calcTempo);
+        calcTempo();
+        document.getElementById('vagaForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const abertura = document.getElementById('v_abertura').value;
+            const fechamento = document.getElementById('v_fechamento').value;
+            const tempo = calcularDias(abertura, fechamento);
+            const data = { cliente: document.getElementById('v_cliente').value, cargo: document.getElementById('v_cargo').value, abertura: abertura, limite: document.getElementById('v_limite').value || null, fechamento: fechamento || null, tempo: tempo, status: document.getElementById('v_status').value, faturamento: parseFloat(document.getElementById('v_faturamento').value) || null, percentual: parseFloat(document.getElementById('v_percentual').value) || null, data: document.getElementById('v_data').value || null, inicioGarantia: document.getElementById('v_inicioGarantia').value || null, fimGarantia: document.getElementById('v_fimGarantia').value || null, reposicao: document.getElementById('v_reposicao').checked };
+            if (vaga) { Object.assign(vaga, data); } else { appData.vacancies.push({ id: 'v' + Date.now(), ...data }); }
+            await saveData(); closeModal(); renderPage('vagas');
+        };
+    }
+    async function deleteVaga(id) { if (confirm('Excluir esta vaga?')) { appData.vacancies = appData.vacancies.filter(v => v.id !== id); await saveData(); renderPage('vagas'); } }
+
+    // --- CONTRATO MODAL ---
     function openContractModal(id = null) {
         const contract = id ? appData.contracts.find(c => c.id === id) : null;
         document.getElementById('modal-content').innerHTML = `
             <div class="p-6">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-xl font-bold text-slate-800">${contract ? 'Editar' : 'Novo'} Contrato</h3>
-                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                </div>
+                <div class="flex justify-between items-center mb-5"><h3 class="text-xl font-bold text-slate-800">${contract ? 'Editar' : 'Novo'} Contrato</h3><button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button></div>
                 <form id="contractForm" class="space-y-4">
                     <div><label class="block text-sm font-medium text-slate-700 mb-1">Nome do Cliente *</label><input type="text" id="c_client" value="${contract ? contract.client : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                     <div class="grid grid-cols-2 gap-4">
@@ -1059,6 +1355,7 @@
     function toggleMotivoPerda() { document.getElementById('motivoPerdaContainer').style.display = document.getElementById('c_status').value === 'PERDIDA' ? 'block' : 'none'; }
     async function deleteContract(id) { if (confirm('Excluir este contrato?')) { appData.contracts = appData.contracts.filter(c => c.id !== id); await saveData(); renderPage('crm'); } }
 
+    // --- TRANSACTION MODAL ---
     function openTransactionModal(id = null) {
         const trans = id ? appData.transactions.find(t => t.id === id) : null;
         const allCats = [...appData.categories.receitas.map(c => ({ ...c, type: 'RECEITA' })), ...appData.categories.despesas.map(c => ({ ...c, type: 'DESPESA' }))];
@@ -1091,15 +1388,11 @@
             const val = parseFloat(document.getElementById('t_value').value) || 0;
             const parc = parseInt(document.getElementById('t_parcelas').value) || 1;
             const preview = document.getElementById('installmentPreview');
-            if (parc > 1 && val > 0) {
-                preview.classList.remove('hidden');
-                document.getElementById('installmentPreviewText').innerHTML = `Serão geradas <strong>${parc} parcelas</strong> de <strong>${formatCurrency(val / parc)}</strong> cada.`;
-            } else { preview.classList.add('hidden'); }
+            if (parc > 1 && val > 0) { preview.classList.remove('hidden'); document.getElementById('installmentPreviewText').innerHTML = `Serão geradas <strong>${parc} parcelas</strong> de <strong>${formatCurrency(val / parc)}</strong> cada.`; } else { preview.classList.add('hidden'); }
         };
         document.getElementById('t_value').addEventListener('input', updatePreview);
         document.getElementById('t_parcelas').addEventListener('input', updatePreview);
         updatePreview();
-
         document.getElementById('transForm').onsubmit = async (e) => {
             e.preventDefault();
             const selectedCat = allCats.find(c => c.id === document.getElementById('t_cat').value);
@@ -1110,35 +1403,14 @@
             const contaId = document.getElementById('t_conta').value;
             const grupoId = 'g' + Date.now();
             const data = { desc: document.getElementById('t_desc').value, catId: selectedCat.id, type: selectedCat.type, status: document.getElementById('t_status').value, formaPagamento: document.getElementById('t_forma').value, tipoPessoa: document.getElementById('t_tipoPessoa').value, parcelamento: parcelas, contaId: contaId || null, grupoId: parcelas > 1 ? grupoId : null };
-
             if (trans) {
                 if (trans.grupoId) appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId || t.id === trans.id);
-                if (parcelas > 1) {
-                    for (let i = 0; i < parcelas; i++) {
-                        const d = new Date(baseDate + 'T00:00:00'); d.setMonth(d.getMonth() + i);
-                        const installmentData = { ...data, id: i === 0 ? trans.id : 't' + Date.now() + '_' + i, value: valorParcela, date: d.toISOString().split('T')[0], parcelaAtual: i + 1, grupoId: grupoId };
-                        if (i === 0) Object.assign(trans, installmentData); else appData.transactions.push(installmentData);
-                    }
-                } else { Object.assign(trans, { ...data, value: valorTotal, date: baseDate, parcelaAtual: 1, grupoId: null }); }
-            } else {
-                for (let i = 0; i < parcelas; i++) {
-                    const d = new Date(baseDate + 'T00:00:00'); d.setMonth(d.getMonth() + i);
-                    appData.transactions.push({ id: 't' + Date.now() + '_' + i, desc: document.getElementById('t_desc').value, catId: selectedCat.id, type: selectedCat.type, value: valorParcela, date: d.toISOString().split('T')[0], status: document.getElementById('t_status').value, formaPagamento: document.getElementById('t_forma').value, tipoPessoa: document.getElementById('t_tipoPessoa').value, parcelamento: parcelas, parcelaAtual: i + 1, contaId: contaId || null, grupoId: parcelas > 1 ? grupoId : null });
-                }
-            }
+                if (parcelas > 1) { for (let i = 0; i < parcelas; i++) { const d = new Date(baseDate + 'T00:00:00'); d.setMonth(d.getMonth() + i); const installmentData = { ...data, id: i === 0 ? trans.id : 't' + Date.now() + '_' + i, value: valorParcela, date: d.toISOString().split('T')[0], parcelaAtual: i + 1, grupoId: grupoId }; if (i === 0) Object.assign(trans, installmentData); else appData.transactions.push(installmentData); } } else { Object.assign(trans, { ...data, value: valorTotal, date: baseDate, parcelaAtual: 1, grupoId: null }); }
+            } else { for (let i = 0; i < parcelas; i++) { const d = new Date(baseDate + 'T00:00:00'); d.setMonth(d.getMonth() + i); appData.transactions.push({ id: 't' + Date.now() + '_' + i, desc: document.getElementById('t_desc').value, catId: selectedCat.id, type: selectedCat.type, value: valorParcela, date: d.toISOString().split('T')[0], status: document.getElementById('t_status').value, formaPagamento: document.getElementById('t_forma').value, tipoPessoa: document.getElementById('t_tipoPessoa').value, parcelamento: parcelas, parcelaAtual: i + 1, contaId: contaId || null, grupoId: parcelas > 1 ? grupoId : null }); } }
             await saveData(); closeModal(); renderPage('financeiro');
         };
     }
-    async function deleteTransaction(id) {
-        if (confirm('Excluir esta transação?')) {
-            const trans = appData.transactions.find(t => t.id === id);
-            if (trans && trans.grupoId) {
-                if (confirm('Esta transação faz parte de um parcelamento. Excluir TODAS as parcelas?')) appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId);
-                else appData.transactions = appData.transactions.filter(t => t.id !== id);
-            } else { appData.transactions = appData.transactions.filter(t => t.id !== id); }
-            await saveData(); renderPage('financeiro');
-        }
-    }
+    async function deleteTransaction(id) { if (confirm('Excluir esta transação?')) { const trans = appData.transactions.find(t => t.id === id); if (trans && trans.grupoId) { if (confirm('Esta transação faz parte de um parcelamento. Excluir TODAS as parcelas?')) appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId); else appData.transactions = appData.transactions.filter(t => t.id !== id); } else { appData.transactions = appData.transactions.filter(t => t.id !== id); } await saveData(); renderPage('financeiro'); } }
 
     function openBankAccountModal(id = null) {
         const account = id ? appData.bankAccounts.find(b => b.id === id) : null;
@@ -1161,20 +1433,9 @@
             </div>
         `;
         openModal();
-        document.getElementById('bankForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const data = { nome: document.getElementById('b_nome').value, tipo: document.getElementById('b_tipo').value, tipoPessoa: document.getElementById('b_tipoPessoa').value, saldoInicial: parseFloat(document.getElementById('b_saldo').value) || 0, cor: document.getElementById('b_cor').value, icone: document.getElementById('b_icone').value };
-            if (account) Object.assign(account, data); else appData.bankAccounts.push({ id: 'b' + Date.now(), ...data });
-            await saveData(); closeModal(); renderPage('contas');
-        };
+        document.getElementById('bankForm').onsubmit = async (e) => { e.preventDefault(); const data = { nome: document.getElementById('b_nome').value, tipo: document.getElementById('b_tipo').value, tipoPessoa: document.getElementById('b_tipoPessoa').value, saldoInicial: parseFloat(document.getElementById('b_saldo').value) || 0, cor: document.getElementById('b_cor').value, icone: document.getElementById('b_icone').value }; if (account) Object.assign(account, data); else appData.bankAccounts.push({ id: 'b' + Date.now(), ...data }); await saveData(); closeModal(); renderPage('contas'); };
     }
-    async function deleteBankAccount(id) {
-        if (confirm('Excluir esta conta bancária? As transações vinculadas ficarão sem conta.')) {
-            appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id);
-            appData.transactions.forEach(t => { if (t.contaId === id) t.contaId = null; });
-            await saveData(); renderPage('contas');
-        }
-    }
+    async function deleteBankAccount(id) { if (confirm('Excluir esta conta bancária? As transações vinculadas ficarão sem conta.')) { appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id); appData.transactions.forEach(t => { if (t.contaId === id) t.contaId = null; }); await saveData(); renderPage('contas'); } }
 
     function openInstallmentModal(id = null) {
         const inst = id ? appData.parcelamentos.find(p => p.id === id) : null;
@@ -1202,31 +1463,9 @@
             </div>
         `;
         openModal();
-        document.getElementById('instForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const selectedCat = allCats.find(c => c.id === document.getElementById('i_cat').value);
-            const data = { desc: document.getElementById('i_desc').value, catId: selectedCat.id, type: selectedCat.type, valueTotal: parseFloat(document.getElementById('i_value').value), parcelas: parseInt(document.getElementById('i_parcelas').value), dataInicio: document.getElementById('i_dataInicio').value, formaPagamento: document.getElementById('i_forma').value, tipoPessoa: document.getElementById('i_tipoPessoa').value, contaId: document.getElementById('i_conta').value, status: 'ATIVO' };
-            if (inst) Object.assign(inst, data); else appData.parcelamentos.push({ id: 'p' + Date.now(), ...data });
-            const grupoId = 'pg' + Date.now();
-            const valorParcela = data.valueTotal / data.parcelas;
-            for (let i = 0; i < data.parcelas; i++) {
-                const d = new Date(data.dataInicio + 'T00:00:00'); d.setMonth(d.getMonth() + i);
-                appData.transactions.push({ id: 'pt' + Date.now() + '_' + i, desc: `${data.desc} (${i + 1}/${data.parcelas})`, catId: data.catId, type: data.type, value: valorParcela, date: d.toISOString().split('T')[0], status: 'PENDENTE', formaPagamento: data.formaPagamento, tipoPessoa: data.tipoPessoa, parcelamento: data.parcelas, parcelaAtual: i + 1, contaId: data.contaId, grupoId: grupoId });
-            }
-            await saveData(); closeModal(); renderPage('parcelamentos');
-        };
+        document.getElementById('instForm').onsubmit = async (e) => { e.preventDefault(); const selectedCat = allCats.find(c => c.id === document.getElementById('i_cat').value); const data = { desc: document.getElementById('i_desc').value, catId: selectedCat.id, type: selectedCat.type, valueTotal: parseFloat(document.getElementById('i_value').value), parcelas: parseInt(document.getElementById('i_parcelas').value), dataInicio: document.getElementById('i_dataInicio').value, formaPagamento: document.getElementById('i_forma').value, tipoPessoa: document.getElementById('i_tipoPessoa').value, contaId: document.getElementById('i_conta').value, status: 'ATIVO' }; if (inst) Object.assign(inst, data); else appData.parcelamentos.push({ id: 'p' + Date.now(), ...data }); const grupoId = 'pg' + Date.now(); const valorParcela = data.valueTotal / data.parcelas; for (let i = 0; i < data.parcelas; i++) { const d = new Date(data.dataInicio + 'T00:00:00'); d.setMonth(d.getMonth() + i); appData.transactions.push({ id: 'pt' + Date.now() + '_' + i, desc: `${data.desc} (${i + 1}/${data.parcelas})`, catId: data.catId, type: data.type, value: valorParcela, date: d.toISOString().split('T')[0], status: 'PENDENTE', formaPagamento: data.formaPagamento, tipoPessoa: data.tipoPessoa, parcelamento: data.parcelas, parcelaAtual: i + 1, contaId: data.contaId, grupoId: grupoId }); } await saveData(); closeModal(); renderPage('parcelamentos'); };
     }
-    async function deleteInstallment(id) {
-        if (confirm('Excluir este parcelamento e todas as suas parcelas?')) {
-            const inst = appData.parcelamentos.find(p => p.id === id);
-            if (inst) {
-                const relatedTrans = appData.transactions.filter(t => t.desc.startsWith(inst.desc));
-                relatedTrans.forEach(t => { appData.transactions = appData.transactions.filter(x => x.id !== t.id); });
-            }
-            appData.parcelamentos = appData.parcelamentos.filter(p => p.id !== id);
-            await saveData(); renderPage('parcelamentos');
-        }
-    }
+    async function deleteInstallment(id) { if (confirm('Excluir este parcelamento e todas as suas parcelas?')) { const inst = appData.parcelamentos.find(p => p.id === id); if (inst) { const relatedTrans = appData.transactions.filter(t => t.desc.startsWith(inst.desc)); relatedTrans.forEach(t => { appData.transactions = appData.transactions.filter(x => x.id !== t.id); }); } appData.parcelamentos = appData.parcelamentos.filter(p => p.id !== id); await saveData(); renderPage('parcelamentos'); } }
 
     function openCategoryModal(tipo) {
         document.getElementById('modal-content').innerHTML = `
@@ -1240,20 +1479,9 @@
             </div>
         `;
         openModal();
-        document.getElementById('catForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const newCat = { id: (tipo === 'receita' ? 'r' : 'd') + Date.now(), nome: document.getElementById('cat_nome').value, tipo: document.getElementById('cat_tipo').value };
-            if (tipo === 'receita') appData.categories.receitas.push(newCat); else appData.categories.despesas.push(newCat);
-            await saveData(); closeModal(); renderPage('config');
-        };
+        document.getElementById('catForm').onsubmit = async (e) => { e.preventDefault(); const newCat = { id: (tipo === 'receita' ? 'r' : 'd') + Date.now(), nome: document.getElementById('cat_nome').value, tipo: document.getElementById('cat_tipo').value }; if (tipo === 'receita') appData.categories.receitas.push(newCat); else appData.categories.despesas.push(newCat); await saveData(); closeModal(); renderPage('config'); };
     }
-    async function deleteCategory(tipo, id) {
-        if (confirm('Excluir esta categoria?')) {
-            if (tipo === 'receita') appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id);
-            else appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id);
-            await saveData(); renderPage('config');
-        }
-    }
+    async function deleteCategory(tipo, id) { if (confirm('Excluir esta categoria?')) { if (tipo === 'receita') appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id); else appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id); await saveData(); renderPage('config'); } }
     </script>
 </body>
 </html>
