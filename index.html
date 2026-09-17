@@ -185,12 +185,12 @@
     const SUPABASE_URL = 'https://oftgrknczbiigjdrade.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mdGd0cmtuY3piaWlnamRyYWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mzg3NjEsImV4cCI6MjEwNTIxNDc2MX0.G23eNVESLJlIt4hJ35HrT_jheGVaTvBPrMboNe8OMPk';
     
-    let supabase = null;
+    let supabaseClient = null;
     let dbConnected = false;
 
     try {
         if (window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+           supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             console.log('✅ Supabase inicializado com sucesso');
         }
     } catch (e) {
@@ -308,12 +308,12 @@
         localStorage.setItem('gcwData', JSON.stringify(appData));
         
         // Se o Supabase estiver conectado, sincroniza com a nuvem
-        if (supabase && dbConnected) {
+        if (supabaseClient && dbConnected) {
             try {
                 // Sincroniza cada tabela em paralelo
                 await Promise.all([
                     // Categories (receitas e despesas juntas, com campo para diferenciar)
-                    supabase.from('categories').upsert(
+                    supabaseClient.from('categories').upsert(
                         [
                             ...appData.categories.receitas.map(c => ({...c, categoria_tipo: 'receita'})),
                             ...appData.categories.despesas.map(c => ({...c, categoria_tipo: 'despesa'}))
@@ -386,7 +386,7 @@
 
     async function loadData() {
         // Tenta carregar do Supabase primeiro
-        if (supabase) {
+        if (supabaseClient) {
             try {
                 // Testa a conexão com uma query simples
                 const { data: testData, error } = await supabase.from('categories').select('id').limit(1);
