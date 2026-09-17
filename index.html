@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SUPABASE SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -47,6 +49,9 @@
         .permission-toggle { transition: all 0.2s ease; }
         .permission-toggle.active { background-color: #10b981; color: white; }
         .permission-toggle.inactive { background-color: #e5e7eb; color: #6b7280; }
+        .db-status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+        .db-online { background-color: #10b981; box-shadow: 0 0 6px #10b981; }
+        .db-offline { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
     </style>
     <script>
         tailwind.config = {
@@ -69,6 +74,10 @@
                 <img src="https://i.postimg.cc/28YKKZXJ/Whats-App-Image-2026-08-30-at-17-28-02.jpg" alt="GCW Logo" class="w-40 h-auto mx-auto mb-4" onerror="this.style.display='none'">
                 <h2 class="text-2xl font-bold text-slate-800">Gestão com Wesley</h2>
                 <p class="text-slate-500 text-sm mt-1">Acesse sua conta para continuar</p>
+                <div id="db-status-indicator" class="mt-2 text-xs">
+                    <span class="db-status db-offline"></span>
+                    <span class="text-slate-500">Conectando ao banco...</span>
+                </div>
             </div>
             <form id="loginForm" class="space-y-5">
                 <div>
@@ -86,7 +95,7 @@
                     </div>
                 </div>
                 <div id="loginError" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
-                    <i class="fas fa-exclamation-circle mr-2"></i> E-mail ou senha incorretos.
+                    <i class="fas fa-exclamation-circle mr-2"></i> <span id="loginErrorMsg">E-mail ou senha incorretos.</span>
                 </div>
                 <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 transition font-semibold shadow-lg shadow-primary-500/30 flex items-center justify-center">
                     <span id="loginBtnText">Entrar no Sistema</span>
@@ -94,7 +103,7 @@
                 </button>
             </form>
             <div class="mt-6 text-center text-xs text-slate-400">
-                <p>Versão 8.0 - Controle de Usuários</p>
+                <p>Versão 9.0 - Supabase Cloud</p>
                 <p class="mt-1">Admin: admin@gcw.com / 123456</p>
                 <p class="mt-1">Teste: usuario@gcw.com / 123456</p>
             </div>
@@ -117,7 +126,8 @@
                 <!-- Menus serão renderizados dinamicamente baseado nas permissões -->
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500">
-                <p>GCW v8.0 - Gestão com Wesley</p>
+                <p>GCW v9.0 - Gestão com Wesley</p>
+                <p class="mt-1"><span id="db-status-text"><span class="db-status db-offline"></span>Offline</span></p>
                 <p class="mt-1 text-green-400"><i class="fas fa-user-shield mr-1"></i><span id="current-user-role">Admin</span></p>
             </div>
         </aside>
@@ -169,6 +179,24 @@
     </div>
 
     <script>
+    // ==========================================
+    // 🔌 CONEXÃO COM SUPABASE
+    // ==========================================
+    const SUPABASE_URL = 'https://oftgrknczbiigjdrade.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mdGd0cmtuY3piaWlnamRyYWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mzg3NjEsImV4cCI6MjEwNTIxNDc2MX0.G23eNVESLJlIt4hJ35HrT_jheGVaTvBPrMboNe8OMPk';
+    
+    let supabase = null;
+    let dbConnected = false;
+
+    try {
+        if (window.supabase) {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Supabase inicializado com sucesso');
+        }
+    } catch (e) {
+        console.error('❌ Erro ao inicializar Supabase:', e);
+    }
+
     // ==========================================
     // DADOS E ESTADO
     // ==========================================
@@ -272,8 +300,194 @@
     let currentAccountFilter = 'todas';
     let currentVagaFilter = 'todas';
 
-    async function saveData() { localStorage.setItem('gcwData', JSON.stringify(appData)); }
-    async function loadData() { appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA; }
+    // ==========================================
+    // 🔌 FUNÇÕES DE BANCO DE DADOS (SUPABASE)
+    // ==========================================
+    async function saveData() {
+        // Sempre salva no localStorage como backup
+        localStorage.setItem('gcwData', JSON.stringify(appData));
+        
+        // Se o Supabase estiver conectado, sincroniza com a nuvem
+        if (supabase && dbConnected) {
+            try {
+                // Sincroniza cada tabela em paralelo
+                await Promise.all([
+                    // Categories (receitas e despesas juntas, com campo para diferenciar)
+                    supabase.from('categories').upsert(
+                        [
+                            ...appData.categories.receitas.map(c => ({...c, categoria_tipo: 'receita'})),
+                            ...appData.categories.despesas.map(c => ({...c, categoria_tipo: 'despesa'}))
+                        ],
+                        { onConflict: 'id' }
+                    ),
+                    // Bank Accounts
+                    supabase.from('bank_accounts').upsert(
+                        appData.bankAccounts.map(b => ({
+                            id: b.id, nome: b.nome, tipo: b.tipo, tipo_pessoa: b.tipoPessoa,
+                            saldo_inicial: b.saldoInicial, cor: b.cor, icone: b.icone
+                        })),
+                        { onConflict: 'id' }
+                    ),
+                    // Contracts
+                    supabase.from('contracts').upsert(
+                        appData.contracts.map(c => ({
+                            id: c.id, client: c.client, value: c.value, status: c.status,
+                            responsible: c.responsible, origem: c.origem, motivo_perda: c.motivoPerda,
+                            descricao: c.descricao
+                        })),
+                        { onConflict: 'id' }
+                    ),
+                    // Vacancies
+                    supabase.from('vacancies').upsert(
+                        appData.vacancies.map(v => ({
+                            id: v.id, cliente: v.cliente, cargo: v.cargo, abertura: v.abertura,
+                            limite: v.limite, fechamento: v.fechamento, tempo: v.tempo, status: v.status,
+                            faturamento: v.faturamento, percentual: v.percentual, data: v.data,
+                            inicio_garantia: v.inicioGarantia, fim_garantia: v.fimGarantia, reposicao: v.reposicao
+                        })),
+                        { onConflict: 'id' }
+                    ),
+                    // Transactions
+                    supabase.from('transactions').upsert(
+                        appData.transactions.map(t => ({
+                            id: t.id, descricao: t.desc, cat_id: t.catId, type: t.type, value: t.value,
+                            date: t.date, status: t.status, forma_pagamento: t.formaPagamento,
+                            tipo_pessoa: t.tipoPessoa, parcelamento: t.parcelamento,
+                            parcela_atual: t.parcelaAtual, grupo_id: t.grupoId, conta_id: t.contaId
+                        })),
+                        { onConflict: 'id' }
+                    ),
+                    // Parcelamentos
+                    supabase.from('parcelamentos').upsert(
+                        appData.parcelamentos.map(p => ({
+                            id: p.id, descricao: p.desc, cat_id: p.catId, type: p.type,
+                            value_total: p.valueTotal, parcelas: p.parcelas, data_inicio: p.dataInicio,
+                            forma_pagamento: p.formaPagamento, tipo_pessoa: p.tipoPessoa,
+                            conta_id: p.contaId, status: p.status
+                        })),
+                        { onConflict: 'id' }
+                    ),
+                    // Users
+                    supabase.from('users').upsert(
+                        appData.users.map(u => ({
+                            id: u.id, email: u.email, password: u.password, nome: u.nome,
+                            role: u.role, permissions: u.permissions, created_at: u.createdAt,
+                            last_login: u.lastLogin
+                        })),
+                        { onConflict: 'id' }
+                    )
+                ]);
+                console.log('✅ Dados sincronizados com Supabase');
+            } catch (error) {
+                console.error('⚠️ Erro ao sincronizar com Supabase:', error);
+            }
+        }
+    }
+
+    async function loadData() {
+        // Tenta carregar do Supabase primeiro
+        if (supabase) {
+            try {
+                // Testa a conexão com uma query simples
+                const { data: testData, error } = await supabase.from('categories').select('id').limit(1);
+                if (error) throw error;
+                
+                dbConnected = true;
+                updateDbStatus(true);
+                console.log('✅ Conectado ao Supabase');
+
+                // Carrega todas as tabelas em paralelo
+                const [cats, banks, contracts, vacancies, transactions, parcelamentos, users] = await Promise.all([
+                    supabase.from('categories').select('*'),
+                    supabase.from('bank_accounts').select('*'),
+                    supabase.from('contracts').select('*'),
+                    supabase.from('vacancies').select('*'),
+                    supabase.from('transactions').select('*'),
+                    supabase.from('parcelamentos').select('*'),
+                    supabase.from('users').select('*')
+                ]);
+
+                // Converte os dados do Supabase para o formato do appData
+                if (cats.data && cats.data.length > 0) {
+                    appData.categories.receitas = cats.data.filter(c => c.categoria_tipo === 'receita').map(c => ({
+                        id: c.id, nome: c.nome, tipo: c.tipo
+                    }));
+                    appData.categories.despesas = cats.data.filter(c => c.categoria_tipo === 'despesa').map(c => ({
+                        id: c.id, nome: c.nome, tipo: c.tipo
+                    }));
+                }
+                if (banks.data && banks.data.length > 0) {
+                    appData.bankAccounts = banks.data.map(b => ({
+                        id: b.id, nome: b.nome, tipo: b.tipo, tipoPessoa: b.tipo_pessoa,
+                        saldoInicial: b.saldo_inicial, cor: b.cor, icone: b.icone
+                    }));
+                }
+                if (contracts.data && contracts.data.length > 0) {
+                    appData.contracts = contracts.data.map(c => ({
+                        id: c.id, client: c.client, value: c.value, status: c.status,
+                        responsible: c.responsible, origem: c.origem, motivoPerda: c.motivo_perda,
+                        descricao: c.descricao
+                    }));
+                }
+                if (vacancies.data && vacancies.data.length > 0) {
+                    appData.vacancies = vacancies.data.map(v => ({
+                        id: v.id, cliente: v.cliente, cargo: v.cargo, abertura: v.abertura,
+                        limite: v.limite, fechamento: v.fechamento, tempo: v.tempo, status: v.status,
+                        faturamento: v.faturamento, percentual: v.percentual, data: v.data,
+                        inicioGarantia: v.inicio_garantia, fimGarantia: v.fim_garantia, reposicao: v.reposicao
+                    }));
+                }
+                if (transactions.data && transactions.data.length > 0) {
+                    appData.transactions = transactions.data.map(t => ({
+                        id: t.id, desc: t.descricao, catId: t.cat_id, type: t.type, value: t.value,
+                        date: t.date, status: t.status, formaPagamento: t.forma_pagamento,
+                        tipoPessoa: t.tipo_pessoa, parcelamento: t.parcelamento,
+                        parcelaAtual: t.parcela_atual, grupoId: t.grupo_id, contaId: t.conta_id
+                    }));
+                }
+                if (parcelamentos.data && parcelamentos.data.length > 0) {
+                    appData.parcelamentos = parcelamentos.data.map(p => ({
+                        id: p.id, desc: p.descricao, catId: p.cat_id, type: p.type,
+                        valueTotal: p.value_total, parcelas: p.parcelas, dataInicio: p.data_inicio,
+                        formaPagamento: p.forma_pagamento, tipoPessoa: p.tipo_pessoa,
+                        contaId: p.conta_id, status: p.status
+                    }));
+                }
+                if (users.data && users.data.length > 0) {
+                    appData.users = users.data.map(u => ({
+                        id: u.id, email: u.email, password: u.password, nome: u.nome,
+                        role: u.role, permissions: u.permissions || [],
+                        createdAt: u.created_at ? u.created_at.split('T')[0] : null,
+                        lastLogin: u.last_login
+                    }));
+                }
+            } catch (error) {
+                console.error('⚠️ Erro ao conectar com Supabase, usando localStorage:', error);
+                dbConnected = false;
+                updateDbStatus(false);
+                // Fallback para localStorage
+                const saved = localStorage.getItem('gcwData');
+                if (saved) appData = JSON.parse(saved);
+            }
+        } else {
+            dbConnected = false;
+            updateDbStatus(false);
+            const saved = localStorage.getItem('gcwData');
+            if (saved) appData = JSON.parse(saved);
+        }
+    }
+
+    function updateDbStatus(online) {
+        const indicator = document.getElementById('db-status-indicator');
+        const statusText = document.getElementById('db-status-text');
+        if (online) {
+            if (indicator) indicator.innerHTML = '<span class="db-status db-online"></span><span class="text-green-600 font-medium">Conectado ao banco de dados</span>';
+            if (statusText) statusText.innerHTML = '<span class="db-status db-online"></span><span class="text-green-400">Online</span>';
+        } else {
+            if (indicator) indicator.innerHTML = '<span class="db-status db-offline"></span><span class="text-slate-500">Modo offline (localStorage)</span>';
+            if (statusText) statusText.innerHTML = '<span class="db-status db-offline"></span><span class="text-red-400">Offline</span>';
+        }
+    }
 
     function formatCurrency(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0); }
     function formatDate(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'; }
@@ -322,6 +536,7 @@
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         const errorDiv = document.getElementById('loginError');
+        const errorMsg = document.getElementById('loginErrorMsg');
         const btnText = document.getElementById('loginBtnText');
         const spinner = document.getElementById('loginSpinner');
 
@@ -341,6 +556,7 @@
             await loadData();
             showMainApp();
         } else {
+            errorMsg.innerText = 'E-mail ou senha incorretos.';
             errorDiv.classList.remove('hidden');
             btnText.innerText = 'Entrar no Sistema';
             spinner.classList.add('hidden');
@@ -1088,6 +1304,10 @@
                     <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Vagas</p><p class="text-2xl font-bold text-primary-600">${appData.vacancies.length}</p><p class="text-xs text-slate-400">cadastradas</p></div>
                     <div class="p-4 bg-slate-50 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Contas Bancárias</p><p class="text-2xl font-bold text-purple-600">${appData.bankAccounts.length}</p><p class="text-xs text-slate-400">cadastradas</p></div>
                 </div>
+            </div>
+            <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4 fade-in">
+                <h4 class="font-semibold text-yellow-800 mb-2"><i class="fas fa-database mr-2"></i>Status do Banco de Dados</h4>
+                <p class="text-sm text-yellow-700">Status: <strong>${dbConnected ? '✅ Conectado ao Supabase (Nuvem)' : '⚠️ Offline (localStorage)'}</strong></p>
             </div>
         `;
     }
