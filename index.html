@@ -191,6 +191,7 @@
     try {
         if (window.supabase) {
            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+           console.log('✅ Cliente Supabase criado:', supabaseClient);
             console.log('✅ Supabase inicializado com sucesso');
         }
     } catch (e) {
@@ -321,7 +322,7 @@
                         { onConflict: 'id' }
                     ),
                     // Bank Accounts
-                    supabase.from('bank_accounts').upsert(
+                    supabaseClient.from('bank_accounts').upsert(
                         appData.bankAccounts.map(b => ({
                             id: b.id, nome: b.nome, tipo: b.tipo, tipo_pessoa: b.tipoPessoa,
                             saldo_inicial: b.saldoInicial, cor: b.cor, icone: b.icone
@@ -329,7 +330,7 @@
                         { onConflict: 'id' }
                     ),
                     // Contracts
-                    supabase.from('contracts').upsert(
+                    supabaseClient.from('contracts').upsert(
                         appData.contracts.map(c => ({
                             id: c.id, client: c.client, value: c.value, status: c.status,
                             responsible: c.responsible, origem: c.origem, motivo_perda: c.motivoPerda,
@@ -338,7 +339,7 @@
                         { onConflict: 'id' }
                     ),
                     // Vacancies
-                    supabase.from('vacancies').upsert(
+                    supabaseClient.from('vacancies').upsert(
                         appData.vacancies.map(v => ({
                             id: v.id, cliente: v.cliente, cargo: v.cargo, abertura: v.abertura,
                             limite: v.limite, fechamento: v.fechamento, tempo: v.tempo, status: v.status,
@@ -348,7 +349,7 @@
                         { onConflict: 'id' }
                     ),
                     // Transactions
-                    supabase.from('transactions').upsert(
+                    supabaseClient.from('transactions').upsert(
                         appData.transactions.map(t => ({
                             id: t.id, descricao: t.desc, cat_id: t.catId, type: t.type, value: t.value,
                             date: t.date, status: t.status, forma_pagamento: t.formaPagamento,
@@ -358,7 +359,7 @@
                         { onConflict: 'id' }
                     ),
                     // Parcelamentos
-                    supabase.from('parcelamentos').upsert(
+                    supabaseClient.from('parcelamentos').upsert(
                         appData.parcelamentos.map(p => ({
                             id: p.id, descricao: p.desc, cat_id: p.catId, type: p.type,
                             value_total: p.valueTotal, parcelas: p.parcelas, data_inicio: p.dataInicio,
@@ -368,7 +369,7 @@
                         { onConflict: 'id' }
                     ),
                     // Users
-                    supabase.from('users').upsert(
+                    supabaseClient.from('users').upsert(
                         appData.users.map(u => ({
                             id: u.id, email: u.email, password: u.password, nome: u.nome,
                             role: u.role, permissions: u.permissions, created_at: u.createdAt,
@@ -389,7 +390,7 @@
         if (supabaseClient) {
             try {
                 // Testa a conexão com uma query simples
-                const { data: testData, error } = await supabase.from('categories').select('id').limit(1);
+                const { data: testData, error } = await supabaseClient.from('categories').select('id').limit(1);
                 if (error) throw error;
                 
                 dbConnected = true;
@@ -398,13 +399,13 @@
 
                 // Carrega todas as tabelas em paralelo
                 const [cats, banks, contracts, vacancies, transactions, parcelamentos, users] = await Promise.all([
-                    supabase.from('categories').select('*'),
-                    supabase.from('bank_accounts').select('*'),
-                    supabase.from('contracts').select('*'),
-                    supabase.from('vacancies').select('*'),
-                    supabase.from('transactions').select('*'),
-                    supabase.from('parcelamentos').select('*'),
-                    supabase.from('users').select('*')
+                    supabaseClient.from('categories').select('*'),
+                    supabaseClient.from('bank_accounts').select('*'),
+                    supabaseClient.from('contracts').select('*'),
+                    supabaseClient.from('vacancies').select('*'),
+                    supabaseClient.from('transactions').select('*'),
+                    supabaseClient.from('parcelamentos').select('*'),
+                    supabaseClient.from('users').select('*')
                 ]);
 
                 // Converte os dados do Supabase para o formato do appData
