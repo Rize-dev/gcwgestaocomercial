@@ -103,7 +103,7 @@
                 </button>
             </form>
             <!-- Informações de versão e contas de teste -->
-             
+
             <!--
                 <div class="mt-6 text-center text-xs text-slate-400">
                     <p>Versão 9.0 - Supabase Cloud</p>
@@ -265,9 +265,9 @@
             { id: 'c10', client: 'Omega SA', value: 7000, status: 'PERDIDA', responsible: 'João Silva', origem: 'PARCERIA', motivoPerda: 'ESCOLHEU CONCORRENTE', descricao: null }
         ],
         vacancies: [
-            { id: 'v1', cliente: 'ENPECEL', cargo: 'VENDEDOR INTERNO', abertura: '2026-07-31', limite: '2026-09-04', fechamento: '2026-08-25', tempo: 18, status: 'FECHADO', faturamento: 1250, percentual: 50, data: '2026-07-31', inicioGarantia: '2026-09-09', fimGarantia: '2026-11-07', reposicao: false },
-            { id: 'v2', cliente: 'DILAVOR', cargo: 'AUXILIAR DE ESCRITÓRIO', abertura: '2026-08-19', limite: '2026-09-23', fechamento: null, tempo: null, status: 'ABERTO', faturamento: null, percentual: null, data: null, inicioGarantia: null, fimGarantia: null, reposicao: false },
-            { id: 'v3', cliente: 'CBS PARAFUSOS', cargo: 'CONSULTOR COMERCIAL', abertura: '2026-08-25', limite: '2026-09-29', fechamento: null, tempo: null, status: 'ABERTO', faturamento: null, percentual: null, data: null, inicioGarantia: null, fimGarantia: null, reposicao: false }
+            { id: 'v1', cliente: 'ENPECEL', cargo: 'VENDEDOR INTERNO', responsavel: 'Wesley', abertura: '2026-07-31', limite: '2026-09-04', fechamento: '2026-08-25', tempo: 18, status: 'FECHADO', faturamento: 1250, percentual: 50, data: '2026-07-31', inicioGarantia: '2026-09-09', fimGarantia: '2026-11-07', reposicao: false },
+            { id: 'v2', cliente: 'DILAVOR', cargo: 'AUXILIAR DE ESCRITÓRIO', responsavel: 'João Usuário', abertura: '2026-08-19', limite: '2026-09-23', fechamento: null, tempo: null, status: 'ABERTO', faturamento: null, percentual: null, data: null, inicioGarantia: null, fimGarantia: null, reposicao: false },
+            { id: 'v3', cliente: 'CBS PARAFUSOS', cargo: 'CONSULTOR COMERCIAL', responsavel: 'Wesley', abertura: '2026-08-25', limite: '2026-09-29', fechamento: null, tempo: null, status: 'ABERTO', faturamento: null, percentual: null, data: null, inicioGarantia: null, fimGarantia: null, reposicao: false }
         ],
         transactions: [
             { id: 't1', desc: 'Mensalidade Assessoria - Alpha', catId: 'r1', type: 'RECEITA', value: 5000, date: '2025-01-10', status: 'PAGO', formaPagamento: 'PIX', tipoPessoa: 'PJ', parcelamento: 1, parcelaAtual: 1, grupoId: null, contaId: 'b1' },
@@ -303,10 +303,32 @@
     };
 
     let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
+    let appNotifications = JSON.parse(localStorage.getItem('gcwNotifications')) || [];
     let currentUser = null;
     let currentMonthFilter = new Date().toISOString().slice(0, 7);
     let currentAccountFilter = 'todas';
     let currentVagaFilter = 'todas';
+
+    function saveNotifications(items) {
+        appNotifications = Array.isArray(items) ? items : [];
+        localStorage.setItem('gcwNotifications', JSON.stringify(appNotifications));
+    }
+
+    function setNotificationRead(notificationId, read = true) {
+        if (!notificationId) return;
+        const existingIndex = appNotifications.findIndex(n => n.id === notificationId);
+        if (existingIndex >= 0) {
+            appNotifications[existingIndex].read = read;
+        } else {
+            appNotifications.push({ id: notificationId, read });
+        }
+        saveNotifications(appNotifications);
+    }
+
+    function getNotificationReadState(notificationId) {
+        const notif = appNotifications.find(n => n.id === notificationId);
+        return notif ? !!notif.read : false;
+    }
 
     // ==========================================
     // 🔌 FUNÇÕES DE BANCO DE DADOS (SUPABASE)
@@ -348,9 +370,9 @@
                     // Vacancies
                     supabaseClient.from('vacancies').upsert(
                         appData.vacancies.map(v => ({
-                            id: v.id, cliente: v.cliente, cargo: v.cargo, abertura: v.abertura,
-                            limite: v.limite, fechamento: v.fechamento, tempo: v.tempo, status: v.status,
-                            faturamento: v.faturamento, percentual: v.percentual, data: v.data,
+                            id: v.id, cliente: v.cliente, cargo: v.cargo, responsavel: v.responsavel || null,
+                            abertura: v.abertura, limite: v.limite, fechamento: v.fechamento, tempo: v.tempo,
+                            status: v.status, faturamento: v.faturamento, percentual: v.percentual, data: v.data,
                             inicio_garantia: v.inicioGarantia, fim_garantia: v.fimGarantia, reposicao: v.reposicao
                         })),
                         { onConflict: 'id' }
@@ -439,9 +461,9 @@
                 }
                 if (vacancies.data && vacancies.data.length > 0) {
                     appData.vacancies = vacancies.data.map(v => ({
-                        id: v.id, cliente: v.cliente, cargo: v.cargo, abertura: v.abertura,
-                        limite: v.limite, fechamento: v.fechamento, tempo: v.tempo, status: v.status,
-                        faturamento: v.faturamento, percentual: v.percentual, data: v.data,
+                        id: v.id, cliente: v.cliente, cargo: v.cargo, responsavel: v.responsavel || null,
+                        abertura: v.abertura, limite: v.limite, fechamento: v.fechamento, tempo: v.tempo,
+                        status: v.status, faturamento: v.faturamento, percentual: v.percentual, data: v.data,
                         inicioGarantia: v.inicio_garantia, fimGarantia: v.fim_garantia, reposicao: v.reposicao
                     }));
                 }
@@ -619,7 +641,7 @@
         if (hasPermission('financeiro')) {
             appData.transactions.filter(t => t.status === 'VENCIDO').forEach(t => {
                 const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
-                notifications.push({ id: 'n_venc_' + t.id, type: 'URGENTE', icon: 'fa-exclamation-circle', color: 'red', title: 'Conta Vencida!', message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
+                notifications.push({ id: 'n_venc_' + t.id, type: 'URGENTE', icon: 'fa-exclamation-circle', color: 'red', title: 'Conta Vencida!', message: `${t.desc} - ${formatCurrency(t.value)} venceu em ${formatDate(t.date)}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: getNotificationReadState('n_venc_' + t.id), action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
             });
 
             appData.transactions.filter(t => {
@@ -630,11 +652,11 @@
                 const cat = [...appData.categories.receitas, ...appData.categories.despesas].find(c => c.id === t.catId);
                 const dueDate = new Date(t.date + 'T00:00:00');
                 const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-                notifications.push({ id: 'n_prox_' + t.id, type: 'AVISO', icon: 'fa-clock', color: 'yellow', title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`, message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
+                notifications.push({ id: 'n_prox_' + t.id, type: 'AVISO', icon: 'fa-clock', color: 'yellow', title: daysLeft === 0 ? 'Vence Hoje!' : `Vence em ${daysLeft} dia(s)`, message: `${t.desc} - ${formatCurrency(t.value)} ${t.type === 'RECEITA' ? 'a receber' : 'a pagar'}`, category: cat ? cat.nome : 'N/A', date: new Date().toISOString(), read: getNotificationReadState('n_prox_' + t.id), action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
             });
 
             appData.transactions.filter(t => t.type === 'RECEITA' && t.status === 'PAGO').slice(0, 3).forEach(t => {
-                notifications.push({ id: 'n_rec_' + t.id, type: 'SUCESSO', icon: 'fa-check-circle', color: 'green', title: 'Receita Confirmada!', message: `${t.desc} - ${formatCurrency(t.value)} recebido`, category: 'Receita', date: new Date().toISOString(), read: false, action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
+                notifications.push({ id: 'n_rec_' + t.id, type: 'SUCESSO', icon: 'fa-check-circle', color: 'green', title: 'Receita Confirmada!', message: `${t.desc} - ${formatCurrency(t.value)} recebido`, category: 'Receita', date: new Date().toISOString(), read: getNotificationReadState('n_rec_' + t.id), action: { type: 'financeiro', id: t.id, scrollTo: t.id } });
             });
         }
 
@@ -644,11 +666,11 @@
                 if (c.status === 'ENVIADA') statusText = 'Proposta Enviada';
                 else if (c.status === 'REUNIAO') statusText = 'Reunião Agendada';
                 else if (c.status === 'EM_ELABORACAO') statusText = 'Proposta em Elaboração';
-                notifications.push({ id: 'n_neg_' + c.id, type: 'INFO', icon: 'fa-handshake', color: 'blue', title: statusText, message: `${c.client} - ${formatCurrency(c.value)}`, category: 'CRM', date: new Date().toISOString(), read: false, action: { type: 'crm', id: c.id, scrollTo: c.id } });
+                notifications.push({ id: 'n_neg_' + c.id, type: 'INFO', icon: 'fa-handshake', color: 'blue', title: statusText, message: `${c.client} - ${formatCurrency(c.value)}`, category: 'CRM', date: new Date().toISOString(), read: getNotificationReadState('n_neg_' + c.id), action: { type: 'crm', id: c.id, scrollTo: c.id } });
             });
 
             appData.contracts.filter(c => c.status === 'PERDIDA').slice(0, 2).forEach(c => {
-                notifications.push({ id: 'n_perd_' + c.id, type: 'AVISO', icon: 'fa-times-circle', color: 'red', title: 'Contrato Perdido', message: `${c.client} - ${formatCurrency(c.value)} | Motivo: ${c.motivoPerda || 'Não informado'}`, category: 'CRM', date: new Date().toISOString(), read: false, action: { type: 'crm', id: c.id, scrollTo: c.id } });
+                notifications.push({ id: 'n_perd_' + c.id, type: 'AVISO', icon: 'fa-times-circle', color: 'red', title: 'Contrato Perdido', message: `${c.client} - ${formatCurrency(c.value)} | Motivo: ${c.motivoPerda || 'Não informado'}`, category: 'CRM', date: new Date().toISOString(), read: getNotificationReadState('n_perd_' + c.id), action: { type: 'crm', id: c.id, scrollTo: c.id } });
             });
         }
 
@@ -660,7 +682,7 @@
             }).forEach(v => {
                 const limiteDate = new Date(v.limite + 'T00:00:00');
                 const daysLeft = Math.ceil((limiteDate - today) / (1000 * 60 * 60 * 24));
-                notifications.push({ id: 'n_vaga_' + v.id, type: 'AVISO', icon: 'fa-briefcase', color: 'yellow', title: daysLeft === 0 ? 'Vaga vence hoje!' : `Vaga vence em ${daysLeft} dia(s)`, message: `${v.cliente} - ${v.cargo}`, category: 'Vagas', date: new Date().toISOString(), read: false, action: { type: 'vagas', id: v.id, scrollTo: v.id } });
+                notifications.push({ id: 'n_vaga_' + v.id, type: 'AVISO', icon: 'fa-briefcase', color: 'yellow', title: daysLeft === 0 ? 'Vaga vence hoje!' : `Vaga vence em ${daysLeft} dia(s)`, message: `${v.cliente} - ${v.cargo}${v.responsavel ? ` | Responsável: ${v.responsavel}` : ''}`, category: 'Vagas', date: new Date().toISOString(), read: getNotificationReadState('n_vaga_' + v.id), action: { type: 'vagas', id: v.id, scrollTo: v.id } });
             });
         }
 
@@ -668,9 +690,9 @@
             appData.bankAccounts.forEach(b => {
                 const saldo = calcularSaldoConta(b.id);
                 if (saldo < 1000 && saldo >= 0) {
-                    notifications.push({ id: 'n_saldo_' + b.id, type: 'AVISO', icon: 'fa-wallet', color: 'yellow', title: 'Saldo Baixo', message: `${b.nome} está com ${formatCurrency(saldo)}`, category: 'Contas Bancárias', date: new Date().toISOString(), read: false, action: { type: 'contas', id: b.id, scrollTo: b.id } });
+                    notifications.push({ id: 'n_saldo_' + b.id, type: 'AVISO', icon: 'fa-wallet', color: 'yellow', title: 'Saldo Baixo', message: `${b.nome} está com ${formatCurrency(saldo)}`, category: 'Contas Bancárias', date: new Date().toISOString(), read: getNotificationReadState('n_saldo_' + b.id), action: { type: 'contas', id: b.id, scrollTo: b.id } });
                 } else if (saldo < 0) {
-                    notifications.push({ id: 'n_saldo_neg_' + b.id, type: 'URGENTE', icon: 'fa-exclamation-triangle', color: 'red', title: 'Saldo Negativo!', message: `${b.nome} está com ${formatCurrency(saldo)}`, category: 'Contas Bancárias', date: new Date().toISOString(), read: false, action: { type: 'contas', id: b.id, scrollTo: b.id } });
+                    notifications.push({ id: 'n_saldo_neg_' + b.id, type: 'URGENTE', icon: 'fa-exclamation-triangle', color: 'red', title: 'Saldo Negativo!', message: `${b.nome} está com ${formatCurrency(saldo)}`, category: 'Contas Bancárias', date: new Date().toISOString(), read: getNotificationReadState('n_saldo_neg_' + b.id), action: { type: 'contas', id: b.id, scrollTo: b.id } });
                 }
             });
         }
@@ -681,22 +703,25 @@
     }
 
     function updateNotificationBadge() {
+        const badge = document.getElementById('notification-badge');
+        if (!badge) return;
         const notifications = generateNotifications();
         const unreadCount = notifications.filter(n => !n.read).length;
-        const badge = document.getElementById('notification-badge');
         badge.innerText = unreadCount;
         badge.style.display = unreadCount > 0 ? 'flex' : 'none';
     }
 
     function toggleNotifications() {
         const dropdown = document.getElementById('notification-dropdown');
+        if (!dropdown) return;
         dropdown.classList.toggle('hidden');
         if (!dropdown.classList.contains('hidden')) renderNotifications();
     }
 
     function renderNotifications() {
-        const notifications = generateNotifications();
         const list = document.getElementById('notification-list');
+        if (!list) return;
+        const notifications = generateNotifications();
         if (notifications.length === 0) {
             list.innerHTML = `<div class="p-8 text-center"><i class="fas fa-bell-slash text-4xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma notificação</p></div>`;
             return;
@@ -725,12 +750,15 @@
             alert('Você não tem permissão para acessar este módulo.');
             return;
         }
-        const notifications = generateNotifications();
-        const notif = notifications.find(n => n.id === notificationId);
-        if (notif) notif.read = true;
+
+        if (notificationId) {
+            setNotificationRead(notificationId, true);
+        }
+
         const pageElement = document.querySelector(`[onclick="switchPage('${pageType}', this)"]`);
         switchPage(pageType, pageElement);
-        document.getElementById('notification-dropdown').classList.add('hidden');
+        const dropdown = document.getElementById('notification-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
         updateNotificationBadge();
         setTimeout(() => {
             if (scrollToId) {
@@ -746,7 +774,7 @@
 
     function markAllAsRead() {
         const notifications = generateNotifications();
-        notifications.forEach(n => { n.read = true; });
+        notifications.forEach(n => setNotificationRead(n.id, true));
         updateNotificationBadge();
         renderNotifications();
         alert('Todas as notificações marcadas como lidas!');
@@ -754,13 +782,17 @@
 
     function clearAllNotifications() {
         if (confirm('Deseja limpar TODAS as notificações?')) {
-            document.getElementById('notification-dropdown').classList.add('hidden');
+            saveNotifications([]);
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown) dropdown.classList.add('hidden');
             updateNotificationBadge();
+            renderNotifications();
         }
     }
 
     document.addEventListener('click', (e) => {
         const dropdown = document.getElementById('notification-dropdown');
+        if (!dropdown) return;
         const bell = e.target.closest('button[onclick="toggleNotifications()"]');
         if (!bell && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
     });
@@ -953,6 +985,7 @@
                             <tr>
                                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Cargo</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Consultor</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Abertura</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Limite</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Fechamento</th>
@@ -974,6 +1007,7 @@
                                 return `<tr id="item-${v.id}" class="hover:bg-slate-50 transition">
                                     <td class="px-3 py-3 text-sm font-medium text-slate-800">${v.cliente}</td>
                                     <td class="px-3 py-3 text-sm text-slate-600">${v.cargo}</td>
+                                    <td class="px-3 py-3 text-sm text-slate-600">${v.responsavel || '-'}</td>
                                     <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.abertura)}</td>
                                     <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.limite)}</td>
                                     <td class="px-3 py-3 text-sm text-slate-500">${formatDate(v.fechamento)}</td>
@@ -1494,14 +1528,19 @@
                         <div><label class="block text-sm font-medium text-slate-700 mb-1">Cliente *</label><input type="text" id="v_cliente" value="${vaga ? vaga.cliente : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                         <div><label class="block text-sm font-medium text-slate-700 mb-1">Cargo *</label><input type="text" id="v_cargo" value="${vaga ? vaga.cargo : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                     </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Consultor Responsável *</label><select id="v_responsavel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>${appData.users.map(u => `<option value="${u.nome}" ${((vaga && vaga.responsavel === u.nome) || (!vaga && currentUser && currentUser.nome === u.nome)) ? 'selected' : ''}>${u.nome}</option>`).join('')}</select></div>
+                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Status *</label><select id="v_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${STATUS_VAGA.map(s => `<option value="${s}" ${vaga && vaga.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+                    </div>
                     <div class="grid grid-cols-3 gap-4">
                         <div><label class="block text-sm font-medium text-slate-700 mb-1">Abertura *</label><input type="date" id="v_abertura" value="${vaga ? vaga.abertura : new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required></div>
                         <div><label class="block text-sm font-medium text-slate-700 mb-1">Limite</label><input type="date" id="v_limite" value="${vaga ? vaga.limite || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
                         <div><label class="block text-sm font-medium text-slate-700 mb-1">Fechamento</label><input type="date" id="v_fechamento" value="${vaga ? vaga.fechamento || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
                     </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="block text-sm font-medium text-slate-700 mb-1">Tempo (dias)</label><input type="number" id="v_tempo" value="${vaga ? vaga.tempo || '' : ''}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" readonly><p class="text-xs text-slate-400 mt-1">Calculado automaticamente</p></div>
-                        <div><label class="block text-sm font-medium text-slate-700 mb-1">Status *</label><select id="v_status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">${STATUS_VAGA.map(s => `<option value="${s}" ${vaga && vaga.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+                        <div class="flex items-end"><span class="text-sm text-slate-500">Preencher o consultor responsável facilita o acompanhamento da vaga.</span></div>
                     </div>
                     <div class="border-t border-slate-200 pt-4">
                         <h4 class="text-sm font-semibold text-slate-700 mb-3"><i class="fas fa-dollar-sign mr-1"></i>Informações Financeiras</h4>
@@ -1540,7 +1579,7 @@
             const abertura = document.getElementById('v_abertura').value;
             const fechamento = document.getElementById('v_fechamento').value;
             const tempo = calcularDias(abertura, fechamento);
-            const data = { cliente: document.getElementById('v_cliente').value, cargo: document.getElementById('v_cargo').value, abertura: abertura, limite: document.getElementById('v_limite').value || null, fechamento: fechamento || null, tempo: tempo, status: document.getElementById('v_status').value, faturamento: parseFloat(document.getElementById('v_faturamento').value) || null, percentual: parseFloat(document.getElementById('v_percentual').value) || null, data: document.getElementById('v_data').value || null, inicioGarantia: document.getElementById('v_inicioGarantia').value || null, fimGarantia: document.getElementById('v_fimGarantia').value || null, reposicao: document.getElementById('v_reposicao').checked };
+            const data = { cliente: document.getElementById('v_cliente').value, cargo: document.getElementById('v_cargo').value, responsavel: document.getElementById('v_responsavel').value.trim() || null, abertura: abertura, limite: document.getElementById('v_limite').value || null, fechamento: fechamento || null, tempo: tempo, status: document.getElementById('v_status').value, faturamento: parseFloat(document.getElementById('v_faturamento').value) || null, percentual: parseFloat(document.getElementById('v_percentual').value) || null, data: document.getElementById('v_data').value || null, inicioGarantia: document.getElementById('v_inicioGarantia').value || null, fimGarantia: document.getElementById('v_fimGarantia').value || null, reposicao: document.getElementById('v_reposicao').checked };
             if (vaga) { Object.assign(vaga, data); } else { appData.vacancies.push({ id: 'v' + Date.now(), ...data }); }
             await saveData(); closeModal(); renderPage('vagas');
         };
