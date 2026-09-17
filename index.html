@@ -304,6 +304,7 @@
 
     let appData = JSON.parse(localStorage.getItem('gcwData')) || DEFAULT_DATA;
     let appNotifications = JSON.parse(localStorage.getItem('gcwNotifications')) || [];
+    let dismissedNotificationIds = JSON.parse(localStorage.getItem('gcwDismissedNotifications')) || [];
     let currentUser = null;
     let currentMonthFilter = new Date().toISOString().slice(0, 7);
     let currentAccountFilter = 'todas';
@@ -328,6 +329,11 @@
     function getNotificationReadState(notificationId) {
         const notif = appNotifications.find(n => n.id === notificationId);
         return notif ? !!notif.read : false;
+    }
+
+    function saveDismissedNotifications(ids) {
+        dismissedNotificationIds = Array.isArray(ids) ? [...new Set(ids)] : [];
+        localStorage.setItem('gcwDismissedNotifications', JSON.stringify(dismissedNotificationIds));
     }
 
     // ==========================================
@@ -699,7 +705,7 @@
 
         const urgencyOrder = { 'URGENTE': 0, 'AVISO': 1, 'SUCESSO': 2, 'INFO': 3 };
         notifications.sort((a, b) => urgencyOrder[a.type] - urgencyOrder[b.type]);
-        return notifications.slice(0, 20);
+        return notifications.filter(n => !dismissedNotificationIds.includes(n.id)).slice(0, 20);
     }
 
     function updateNotificationBadge() {
@@ -782,6 +788,8 @@
 
     function clearAllNotifications() {
         if (confirm('Deseja limpar TODAS as notificações?')) {
+            const currentNotificationIds = generateNotifications().map(n => n.id);
+            saveDismissedNotifications([...dismissedNotificationIds, ...currentNotificationIds]);
             saveNotifications([]);
             const dropdown = document.getElementById('notification-dropdown');
             if (dropdown) dropdown.classList.add('hidden');
