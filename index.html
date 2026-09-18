@@ -347,7 +347,7 @@
         if (supabaseClient && dbConnected) {
             try {
                 // Sincroniza cada tabela em paralelo
-                await Promise.all([
+                const results = await Promise.all([
                     // Categories (receitas e despesas juntas, com campo para diferenciar)
                     supabaseClient.from('categories').upsert(
                         [
@@ -413,11 +413,30 @@
                         { onConflict: 'id' }
                     )
                 ]);
+                const failedOperation = results.find(result => result.error);
+                if (failedOperation) throw failedOperation.error;
                 console.log('✅ Dados sincronizados com Supabase');
+                return true;
             } catch (error) {
                 console.error('⚠️ Erro ao sincronizar com Supabase:', error);
+                alert(`Os dados foram salvos neste dispositivo, mas não puderam ser sincronizados com o banco de dados.\n\n${error.message || 'Verifique as permissões do Supabase.'}`);
+                return false;
             }
         }
+        return false;
+    }
+
+    async function deleteRemoteRecords(table, ids) {
+        const validIds = [...new Set(ids.filter(Boolean))];
+        if (!supabaseClient || !dbConnected || validIds.length === 0) return true;
+
+        const { error } = await supabaseClient.from(table).delete().in('id', validIds);
+        if (error) {
+            console.error(`⚠️ Erro ao excluir dados da tabela ${table}:`, error);
+            alert(`Os dados foram removidos da tela, mas não puderam ser excluídos do banco de dados.\n\n${error.message}`);
+            return false;
+        }
+        return true;
     }
 
     async function loadData() {
@@ -1518,6 +1537,7 @@
         }
         if (confirm('Excluir este usuário? Esta ação não pode ser desfeita.')) {
             appData.users = appData.users.filter(u => u.id !== id);
+            await deleteRemoteRecords('users', [id]);
             await saveData(); renderPage('usuarios');
         }
     }
@@ -1592,7 +1612,7 @@
             await saveData(); closeModal(); renderPage('vagas');
         };
     }
-    async function deleteVaga(id) { if (confirm('Excluir esta vaga?')) { appData.vacancies = appData.vacancies.filter(v => v.id !== id); await saveData(); renderPage('vagas'); } }
+    async function deleteVaga(id) { if (confirm('Excluir esta vaga?')) { appData.vacancies = appData.vacancies.filter(v => v.id !== id); await deleteRemoteRecords('vacancies', [id]); await saveData(); renderPage('vagas'); } }
 
     // --- CONTRATO MODAL ---
     function openContractModal(id = null) {
@@ -1628,7 +1648,7 @@
         };
     }
     function toggleMotivoPerda() { document.getElementById('motivoPerdaContainer').style.display = document.getElementById('c_status').value === 'PERDIDA' ? 'block' : 'none'; }
-    async function deleteContract(id) { if (confirm('Excluir este contrato?')) { appData.contracts = appData.contracts.filter(c => c.id !== id); await saveData(); renderPage('crm'); } }
+    async function deleteContract(id) { if (confirm('Excluir este contrato?')) { appData.contracts = appData.contracts.filter(c => c.id !== id); await deleteRemoteRecords('contracts', [id]); await saveData(); renderPage('crm'); } }
 
     // --- TRANSACTION MODAL ---
     function openTransactionModal(id = null) {
@@ -1685,7 +1705,7 @@
             await saveData(); closeModal(); renderPage('financeiro');
         };
     }
-    async function deleteTransaction(id) { if (confirm('Excluir esta transação?')) { const trans = appData.transactions.find(t => t.id === id); if (trans && trans.grupoId) { if (confirm('Esta transação faz parte de um parcelamento. Excluir TODAS as parcelas?')) appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId); else appData.transactions = appData.transactions.filter(t => t.id !== id); } else { appData.transactions = appData.transactions.filter(t => t.id !== id); } await saveData(); renderPage('financeiro'); } }
+    async function deleteTransaction(id) { if (confirm('Excluir esta transação?')) { const trans = appData.transactions.find(t => t.id === id); let idsToDelete = [id]; if (trans && trans.grupoId) { if (confirm('Esta transação faz parte de um parcelamento. Excluir TODAS as parcelas?')) { idsToDelete = appData.transactions.filter(t => t.grupoId === trans.grupoId).map(t => t.id); appData.transactions = appData.transactions.filter(t => t.grupoId !== trans.grupoId); } else { appData.transactions = appData.transactions.filter(t => t.id !== id); } } else { appData.transactions = appData.transactions.filter(t => t.id !== id); } await deleteRemoteRecords('transactions', idsToDelete); await saveData(); renderPage('financeiro'); } }
 
     function openBankAccountModal(id = null) {
         const account = id ? appData.bankAccounts.find(b => b.id === id) : null;
@@ -1710,7 +1730,7 @@
         openModal();
         document.getElementById('bankForm').onsubmit = async (e) => { e.preventDefault(); const data = { nome: document.getElementById('b_nome').value, tipo: document.getElementById('b_tipo').value, tipoPessoa: document.getElementById('b_tipoPessoa').value, saldoInicial: parseFloat(document.getElementById('b_saldo').value) || 0, cor: document.getElementById('b_cor').value, icone: document.getElementById('b_icone').value }; if (account) Object.assign(account, data); else appData.bankAccounts.push({ id: 'b' + Date.now(), ...data }); await saveData(); closeModal(); renderPage('contas'); };
     }
-    async function deleteBankAccount(id) { if (confirm('Excluir esta conta bancária? As transações vinculadas ficarão sem conta.')) { appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id); appData.transactions.forEach(t => { if (t.contaId === id) t.contaId = null; }); await saveData(); renderPage('contas'); } }
+    async function deleteBankAccount(id) { if (confirm('Excluir esta conta bancária? As transações vinculadas ficarão sem conta.')) { appData.bankAccounts = appData.bankAccounts.filter(b => b.id !== id); appData.transactions.forEach(t => { if (t.contaId === id) t.contaId = null; }); await deleteRemoteRecords('bank_accounts', [id]); await saveData(); renderPage('contas'); } }
 
     function openInstallmentModal(id = null) {
         const inst = id ? appData.parcelamentos.find(p => p.id === id) : null;
@@ -1740,7 +1760,7 @@
         openModal();
         document.getElementById('instForm').onsubmit = async (e) => { e.preventDefault(); const selectedCat = allCats.find(c => c.id === document.getElementById('i_cat').value); const data = { desc: document.getElementById('i_desc').value, catId: selectedCat.id, type: selectedCat.type, valueTotal: parseFloat(document.getElementById('i_value').value), parcelas: parseInt(document.getElementById('i_parcelas').value), dataInicio: document.getElementById('i_dataInicio').value, formaPagamento: document.getElementById('i_forma').value, tipoPessoa: document.getElementById('i_tipoPessoa').value, contaId: document.getElementById('i_conta').value, status: 'ATIVO' }; if (inst) Object.assign(inst, data); else appData.parcelamentos.push({ id: 'p' + Date.now(), ...data }); const grupoId = 'pg' + Date.now(); const valorParcela = data.valueTotal / data.parcelas; for (let i = 0; i < data.parcelas; i++) { const d = new Date(data.dataInicio + 'T00:00:00'); d.setMonth(d.getMonth() + i); appData.transactions.push({ id: 'pt' + Date.now() + '_' + i, desc: `${data.desc} (${i + 1}/${data.parcelas})`, catId: data.catId, type: data.type, value: valorParcela, date: d.toISOString().split('T')[0], status: 'PENDENTE', formaPagamento: data.formaPagamento, tipoPessoa: data.tipoPessoa, parcelamento: data.parcelas, parcelaAtual: i + 1, contaId: data.contaId, grupoId: grupoId }); } await saveData(); closeModal(); renderPage('parcelamentos'); };
     }
-    async function deleteInstallment(id) { if (confirm('Excluir este parcelamento e todas as suas parcelas?')) { const inst = appData.parcelamentos.find(p => p.id === id); if (inst) { const relatedTrans = appData.transactions.filter(t => t.desc.startsWith(inst.desc)); relatedTrans.forEach(t => { appData.transactions = appData.transactions.filter(x => x.id !== t.id); }); } appData.parcelamentos = appData.parcelamentos.filter(p => p.id !== id); await saveData(); renderPage('parcelamentos'); } }
+    async function deleteInstallment(id) { if (confirm('Excluir este parcelamento e todas as suas parcelas?')) { const inst = appData.parcelamentos.find(p => p.id === id); let transactionIds = []; if (inst) { const relatedTrans = appData.transactions.filter(t => t.desc.startsWith(inst.desc)); transactionIds = relatedTrans.map(t => t.id); appData.transactions = appData.transactions.filter(t => !transactionIds.includes(t.id)); } appData.parcelamentos = appData.parcelamentos.filter(p => p.id !== id); await deleteRemoteRecords('transactions', transactionIds); await deleteRemoteRecords('parcelamentos', [id]); await saveData(); renderPage('parcelamentos'); } }
 
     function openCategoryModal(tipo) {
         document.getElementById('modal-content').innerHTML = `
@@ -1756,7 +1776,7 @@
         openModal();
         document.getElementById('catForm').onsubmit = async (e) => { e.preventDefault(); const newCat = { id: (tipo === 'receita' ? 'r' : 'd') + Date.now(), nome: document.getElementById('cat_nome').value, tipo: document.getElementById('cat_tipo').value }; if (tipo === 'receita') appData.categories.receitas.push(newCat); else appData.categories.despesas.push(newCat); await saveData(); closeModal(); renderPage('config'); };
     }
-    async function deleteCategory(tipo, id) { if (confirm('Excluir esta categoria?')) { if (tipo === 'receita') appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id); else appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id); await saveData(); renderPage('config'); } }
+    async function deleteCategory(tipo, id) { if (confirm('Excluir esta categoria?')) { if (tipo === 'receita') appData.categories.receitas = appData.categories.receitas.filter(c => c.id !== id); else appData.categories.despesas = appData.categories.despesas.filter(c => c.id !== id); await deleteRemoteRecords('categories', [id]); await saveData(); renderPage('config'); } }
     </script>
 </body>
 </html>
