@@ -194,6 +194,7 @@
     
     let supabaseClient = null;
     let dbConnected = false;
+    let dbErrorMessage = '';
 
     try {
         if (window.supabase) {
@@ -419,7 +420,10 @@
                 return true;
             } catch (error) {
                 console.error('⚠️ Erro ao sincronizar com Supabase:', error);
-                alert(`Os dados foram salvos neste dispositivo, mas não puderam ser sincronizados com o banco de dados.\n\n${error.message || 'Verifique as permissões do Supabase.'}`);
+                dbConnected = false;
+                dbErrorMessage = error.message || 'Verifique as permissões e a chave anon do Supabase.';
+                updateDbStatus(false);
+                alert(`Os dados foram salvos neste dispositivo, mas não puderam ser sincronizados com o banco de dados.\n\n${dbErrorMessage}`);
                 return false;
             }
         }
@@ -461,6 +465,8 @@
                     supabaseClient.from('parcelamentos').select('*'),
                     supabaseClient.from('users').select('*')
                 ]);
+                const failedQuery = [cats, banks, contracts, vacancies, transactions, parcelamentos, users].find(result => result.error);
+                if (failedQuery) throw failedQuery.error;
 
                 // Converte os dados do Supabase para o formato do appData
                 if (cats.data && cats.data.length > 0) {
@@ -519,6 +525,7 @@
             } catch (error) {
                 console.error('⚠️ Erro ao conectar com Supabase, usando localStorage:', error);
                 dbConnected = false;
+                dbErrorMessage = error.message || 'Verifique a URL, a chave anon e as permissões do Supabase.';
                 updateDbStatus(false);
                 // Fallback para localStorage
                 const saved = localStorage.getItem('gcwData');
@@ -539,7 +546,8 @@
             if (indicator) indicator.innerHTML = '<span class="db-status db-online"></span><span class="text-green-600 font-medium">Conectado ao banco de dados</span>';
             if (statusText) statusText.innerHTML = '<span class="db-status db-online"></span><span class="text-green-400">Online</span>';
         } else {
-            if (indicator) indicator.innerHTML = '<span class="db-status db-offline"></span><span class="text-slate-500">Modo offline (localStorage)</span>';
+            const detail = dbErrorMessage ? ` title="${dbErrorMessage}"` : '';
+            if (indicator) indicator.innerHTML = `<span class="db-status db-offline"></span><span class="text-slate-500"${detail}>Modo offline (localStorage)</span>`;
             if (statusText) statusText.innerHTML = '<span class="db-status db-offline"></span><span class="text-red-400">Offline</span>';
         }
     }
